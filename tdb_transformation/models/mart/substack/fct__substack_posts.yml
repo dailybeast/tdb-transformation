@@ -1,0 +1,263 @@
+version: 2
+
+models:
+  - name: fct__substack_posts
+    description: >
+      Post-grain performance fact table for The Royalist Substack. One row per post
+      per snapshot date. Contains actuals alongside publication-level averages
+      enabling direct benchmarking of any post against the publication's recent baseline.
+      Source data: raw_landing.substack_royalist___post_overview.
+
+    columns:
+
+      # --- Keys & Metadata ---
+      - name: post_id
+        description: Unique integer identifier for the post, assigned by Substack.
+
+      - name: snapshot_date
+        description: UTC timestamp of when this row was captured from the Substack API. A post may have multiple rows across snapshot dates as stats accumulate.
+
+      - name: post_uuid
+        description: UUID for the post, used in Substack URLs and internal references.
+
+      - name: title
+        description: Published title of the post.
+
+      - name: slug
+        description: URL slug for the post (e.g. harrys-sandringham-offer-revives).
+
+      - name: post_type
+        description: Content type. Typically 'newsletter'. Other values may include 'podcast' or 'thread'.
+
+      - name: audience
+        description: Audience setting at time of send. 'everyone' includes free and paid subscribers.
+
+      - name: meter_type
+        description: Paywall type applied to the post. 'none' indicates fully free content.
+
+      - name: is_published
+        description: Boolean. True if the post has been published.
+
+      - name: should_send_email
+        description: Boolean. True if the post was configured to send an email to subscribers.
+
+      - name: write_comment_permissions
+        description: Who is allowed to comment on the post (e.g. 'everyone', 'paid').
+
+      - name: publication_id
+        description: Substack publication identifier for The Royalist (5441321).
+
+      - name: post_date
+        description: UTC timestamp when the post was published.
+
+      - name: email_sent_at
+        description: UTC timestamp when the email was dispatched to subscribers.
+
+      - name: draft_created_at
+        description: UTC timestamp when the draft was first created.
+
+      - name: draft_updated_at
+        description: UTC timestamp of the most recent draft save before publish.
+
+      - name: cover_image_url
+        description: URL of the post's cover image as stored on Substack's CDN.
+
+      - name: author_name
+        description: Display name of the primary byline author.
+
+      - name: author_handle
+        description: Substack handle of the primary byline author (e.g. theroyalist).
+
+      # --- Actuals: Email Delivery ---
+      - name: queued
+        description: Number of emails queued for delivery.
+
+      - name: sent
+        description: Number of emails sent (may differ from queued due to suppressions).
+
+      - name: delivered
+        description: Number of emails successfully delivered to inboxes.
+
+      - name: dropped
+        description: Number of emails dropped (bounced, unsubscribed, or suppressed before send).
+
+      - name: opened
+        description: Number of unique subscribers who opened the email.
+
+      - name: opens
+        description: Total email open events including repeat opens.
+
+      - name: clicked
+        description: Number of unique subscribers who clicked any link in the email.
+
+      - name: clicks
+        description: Total link click events including repeat clicks.
+
+      # --- Actuals: Rates ---
+      - name: open_rate
+        description: Unique opens divided by delivered. Expressed as a decimal (e.g. 0.39 = 39%).
+
+      - name: click_through_rate
+        description: Unique clicks divided by delivered. Expressed as a decimal.
+
+      - name: engagement_rate
+        description: Unique engagements (opens + clicks + reactions) divided by delivered. Expressed as a decimal.
+
+      # --- Actuals: Views & Reads ---
+      - name: views
+        description: Total post views across all surfaces (email, web, app).
+
+      - name: engaged
+        description: Number of unique subscribers counted as engaged with this post.
+
+      - name: subscribers_finished_post
+        description: Number of subscribers who scrolled to the end of the post.
+
+      - name: restacks
+        description: Number of times this post was restacked by other Substack users.
+
+      # --- Actuals: Engagement ---
+      - name: comment_count
+        description: Total number of top-level comments on the post.
+
+      - name: reaction_count
+        description: Total number of emoji reactions on the post.
+
+      - name: likes
+        description: Number of likes (heart reactions) on the post.
+
+      - name: shares
+        description: Number of times the post was shared via the share button.
+
+      # --- Actuals: Subscription Conversions ---
+      - name: subscribes
+        description: Total new paid subscriptions attributed to this post.
+
+      - name: monthly_subscribes
+        description: New monthly paid subscriptions attributed to this post.
+
+      - name: annual_subscribes
+        description: New annual paid subscriptions attributed to this post.
+
+      - name: free_to_paid_upgrades
+        description: Number of free subscribers who upgraded to paid after reading this post.
+
+      - name: signups
+        description: New free signups attributed to this post.
+
+      - name: estimated_value
+        description: Substack's estimated revenue value (USD) attributed to this post based on subscriptions driven.
+
+      # --- Actuals: Churn Signals ---
+      - name: unsubscribes
+        description: Total unsubscribes attributed to this post.
+
+      - name: unsubscribes_within_1_day
+        description: Unsubscribes that occurred within 24 hours of the email send.
+
+      - name: disables_within_1_day
+        description: Email notification disables within 24 hours of send, a softer churn signal than unsubscribe.
+
+      - name: subscriptions_within_1_day
+        description: New paid subscriptions that occurred within 24 hours of send.
+
+      - name: signups_within_1_day
+        description: New free signups within 24 hours of send.
+
+      # --- Actuals: Referrers ---
+      - name: referrer_total_views
+        description: Total views with a known referrer source. May differ from views due to attribution gaps.
+
+      # --- Publication Averages (Royalist baseline) ---
+      - name: pub_avg_n_comp_posts
+        description: Number of recent Royalist posts used to compute the publication averages. Selected by Substack as comparable based on post type and audience.
+
+      - name: pub_avg_sent
+        description: Publication average emails sent across comparable recent posts.
+
+      - name: pub_avg_queued
+        description: Publication average emails queued across comparable recent posts.
+
+      - name: pub_avg_delivered
+        description: Publication average emails delivered across comparable recent posts.
+
+      - name: pub_avg_dropped
+        description: Publication average emails dropped across comparable recent posts.
+
+      - name: pub_avg_opened
+        description: Publication average unique opens across comparable recent posts.
+
+      - name: pub_avg_opens
+        description: Publication average total open events across comparable recent posts.
+
+      - name: pub_avg_clicked
+        description: Publication average unique clicks across comparable recent posts.
+
+      - name: pub_avg_clicks
+        description: Publication average total click events across comparable recent posts.
+
+      - name: pub_avg_open_rate
+        description: Publication average open rate. Use to benchmark this post's open_rate.
+
+      - name: pub_avg_click_through_rate
+        description: Publication average CTR. Use to benchmark this post's click_through_rate.
+
+      - name: pub_avg_engagement_rate
+        description: Publication average engagement rate. Use to benchmark this post's engagement_rate.
+
+      - name: pub_avg_views
+        description: Publication average total views across comparable recent posts.
+
+      - name: pub_avg_unique_engagements
+        description: Publication average unique engaged readers across comparable recent posts.
+
+      - name: pub_avg_unique_opens_day7
+        description: Publication average unique opens within 7 days of send.
+
+      - name: pub_avg_unique_opens_day28
+        description: Publication average unique opens within 28 days of send.
+
+      - name: pub_avg_likes
+        description: Publication average likes across comparable recent posts.
+
+      - name: pub_avg_comments
+        description: Publication average comment count across comparable recent posts.
+
+      - name: pub_avg_shares
+        description: Publication average shares across comparable recent posts.
+
+      - name: pub_avg_subscribes
+        description: Publication average total paid subscriptions driven per post.
+
+      - name: pub_avg_monthly_subscribes
+        description: Publication average monthly subscriptions driven per post.
+
+      - name: pub_avg_annual_subscribes
+        description: Publication average annual subscriptions driven per post.
+
+      - name: pub_avg_unsubscribes
+        description: Publication average unsubscribes per post.
+
+      - name: pub_avg_unsubscribes_within_1_day
+        description: Publication average unsubscribes within 24 hours of send.
+
+      - name: pub_avg_disables_within_1_day
+        description: Publication average email disables within 24 hours of send.
+
+      - name: pub_avg_subscriptions_within_1_day
+        description: Publication average new paid subscriptions within 24 hours of send.
+
+      - name: pub_avg_signups_within_1_day
+        description: Publication average free signups within 24 hours of send.
+
+      - name: pub_avg_signups
+        description: Publication average total free signups driven per post.
+
+      - name: pub_avg_estimated_value
+        description: Publication average estimated revenue value (USD) attributed per post.
+
+      - name: pub_avg_unique_engagements
+        description: Publication average unique engaged readers per post.
+
+      - name: stats_updated_at
+        description: UTC timestamp of when Substack last refreshed the stats for this post.

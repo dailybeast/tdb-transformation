@@ -1,0 +1,32 @@
+version: 2
+
+sources:
+  - name: raw_landing
+    database: data-platform-455517
+    schema: raw_landing
+    description: Raw JSON payloads landed from the Substack acquisition script.
+
+    tables:
+      - name: substack_royalist___post_overview
+        description: >
+          One row per post per snapshot date. Contains the full Substack dashboard
+          overview tab payload including post metadata, email delivery stats,
+          engagement counts, subscription-driven metrics, comp benchmarks,
+          and referrer source summary.
+        loaded_at_field: snapshot_date
+        freshness:
+          warn_after: {count: 10, period: day}
+          # error_after: {count: 2, period: day}
+        columns:
+          - name: post_id
+            description: Substack post ID.
+            tests:
+              - not_null
+          - name: snapshot_date
+            description: Date the payload was captured by the acquisition script.
+            tests:
+              - not_null
+          - name: data
+            description: Raw JSON payload from the Substack overview endpoint.
+            tests:
+              - not_null
