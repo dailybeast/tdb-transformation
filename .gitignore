@@ -1,0 +1,12 @@
+# dbt
+tdb_transformation/target/
+tdb_transformation/dbt_packages/
+tdb_transformation/logs/
+
+# Python venv
+venv-tdb-transformation/
+
+# General
+.DS_Store
+*.pyc
+__pycache__/
