@@ -1,0 +1,23 @@
+version: 2
+
+models:
+  - name: int__substack_post_comments
+    description: >
+      Deduped post comments, one row per comment (latest snapshot).
+      Body is plain text — suitable for downstream LLM use cases.
+
+    columns:
+      - name: comment_id
+        description: Unique identifier for the comment, assigned by Substack.
+
+      - name: post_id
+        description: The post this comment belongs to.
+
+      - name: parent_comment_id
+        description: ID of the parent comment if this is a reply. Null for top-level comments.
+
+      - name: body
+        description: Plain text content of the comment.
+
+      - name: snapshot_date
+        description: UTC timestamp of the most recent snapshot for this comment.

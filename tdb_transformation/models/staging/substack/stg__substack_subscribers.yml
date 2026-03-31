@@ -1,0 +1,59 @@
+version: 2
+
+models:
+  - name: stg__substack_subscribers
+    description: >
+      Flattened subscriber records from the raw snapshot. One row per subscriber
+      per snapshot date. No deduplication — all snapshots retained for SCD2 tracking
+      in the intermediate layer.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: snapshot_date
+        data_type: timestamp
+        tests:
+          - not_null
+
+      - name: subscription_id
+        data_type: integer
+        tests:
+          - not_null
+
+      - name: user_id
+        data_type: integer
+        tests:
+          - not_null
+
+      - name: is_subscribed
+        data_type: boolean
+
+      - name: is_comp
+        data_type: boolean
+
+      - name: is_gift
+        data_type: boolean
+
+      - name: is_free_trial
+        data_type: boolean
+
+      - name: subscription_interval
+        data_type: string
+
+      - name: activity_rating
+        data_type: integer
+
+      - name: subscription_created_at
+        data_type: timestamp
+
+      - name: first_payment_at
+        data_type: timestamp
+
+      - name: subscription_expires_at
+        data_type: timestamp
+
+      - name: unsubscribed_at
+        data_type: timestamp
+
+      - name: total_count
+        data_type: integer

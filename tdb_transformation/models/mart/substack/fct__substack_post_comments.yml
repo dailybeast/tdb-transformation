@@ -1,0 +1,28 @@
+version: 2
+
+models:
+  - name: fct__substack_post_comments
+    description: >
+      Post comments fact table for The Royalist Substack. One row per comment,
+      deduped to the most recent snapshot. Body is plain text and suitable for
+      downstream LLM use cases. Includes top-level comments and replies.
+      Source data: raw_landing.substack_royalist___post_comments.
+
+    columns:
+
+      # --- Keys ---
+      - name: comment_id
+        description: Unique identifier for the comment, assigned by Substack.
+
+      - name: post_id
+        description: The post this comment belongs to.
+
+      - name: parent_comment_id
+        description: ID of the parent comment if this is a reply. Null for top-level comments.
+
+      # --- Content ---
+      - name: body
+        description: Plain text content of the comment.
+
+      - name: snapshot_date
+        description: UTC timestamp of the most recent snapshot for this comment.

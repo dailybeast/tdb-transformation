@@ -30,3 +30,74 @@ sources:
             description: Raw JSON payload from the Substack overview endpoint.
             tests:
               - not_null
+              
+      - name: substack_royalist___subscribers_snapshot
+        description: >
+          Full export of paid subscribers per snapshot date. One row per snapshot —
+          subscriber records are nested in a sub STRUCT and flattened in staging.
+        loaded_at_field: snapshot_date
+        freshness:
+          warn_after: {count: 10, period: day}
+        columns:
+          - name: snapshot_date
+            description: Timestamp when the subscriber list was captured.
+            tests:
+              - not_null
+          - name: sub
+            description: STRUCT containing subscriber and subscription fields.
+
+      - name: substack_royalist___post_growth
+        description: >
+          One row per post per snapshot date. Contains nested totals and user arrays
+          for subscribes, signups, and unsubscribes attributed to each post.
+          User arrays are dropped in staging — only totals are surfaced.
+        loaded_at_field: snapshot_date
+        freshness:
+          warn_after: {count: 10, period: day}
+        columns:
+          - name: post_id
+            description: Substack post ID.
+            tests:
+              - not_null
+          - name: snapshot_date
+            description: UTC timestamp when this payload was captured.
+            tests:
+              - not_null
+
+      - name: substack_royalist___post_comments
+        description: >
+          One row per comment per snapshot date. Includes top-level comments and replies.
+          Body is plain text, suitable for LLM use cases.
+        loaded_at_field: snapshot_date
+        freshness:
+          warn_after: {count: 10, period: day}
+        columns:
+          - name: comment_id
+            description: Unique comment identifier.
+            tests:
+              - not_null
+          - name: post_id
+            description: The post this comment belongs to.
+            tests:
+              - not_null
+          - name: snapshot_date
+            description: UTC timestamp when this comment was captured.
+            tests:
+              - not_null
+
+      - name: substack_royalist___post_traffic
+        description: >
+          One row per post per snapshot date. Contains nested arrays for referrers,
+          devices, and categories. Pivoted into a wide post-grain format in staging.
+        loaded_at_field: snapshot_date
+        freshness:
+          warn_after: {count: 10, period: day}
+        columns:
+          - name: post_id
+            description: Substack post ID.
+            tests:
+              - not_null
+          - name: snapshot_date
+            description: UTC timestamp when this payload was captured.
+            tests:
+              - not_null

@@ -1,7 +1,7 @@
 version: 2
 
 models:
-  - name: fct__substack_posts
+  - name: fct__substack_post_overview
     description: >
       Post-grain performance fact table for The Royalist Substack. One row per post
       per snapshot date. Contains actuals alongside publication-level averages

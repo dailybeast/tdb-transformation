@@ -1,0 +1,51 @@
+version: 2
+
+models:
+  - name: stg__substack_post_growth
+    description: >
+      Staging model for Substack post growth data. One row per post per snapshot date.
+      Flattens subscription, signup, and unsubscribe totals from the nested raw payload.
+      User-level PII arrays are dropped at this layer.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: post_id
+        description: Substack post ID.
+        data_type: integer
+        tests:
+          - not_null
+
+      - name: snapshot_date
+        description: UTC timestamp when this payload was captured from the Substack API.
+        data_type: timestamp
+        tests:
+          - not_null
+
+      - name: subscribes
+        description: Total new paid subscriptions attributed to this post.
+        data_type: integer
+
+      - name: monthly_subscribes
+        description: New monthly paid subscriptions attributed to this post.
+        data_type: integer
+
+      - name: annual_subscribes
+        description: New annual paid subscriptions attributed to this post.
+        data_type: integer
+
+      - name: free_trials
+        description: New free trials attributed to this post.
+        data_type: integer
+
+      - name: founding_subscribes
+        description: New founding member subscriptions attributed to this post.
+        data_type: integer
+
+      - name: signups
+        description: New free signups attributed to this post.
+        data_type: integer
+
+      - name: unsubscribes
+        description: Unsubscribes attributed to this post.
+        data_type: integer

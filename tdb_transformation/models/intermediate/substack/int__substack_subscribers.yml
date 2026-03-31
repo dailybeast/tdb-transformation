@@ -1,0 +1,50 @@
+version: 2
+
+models:
+  - name: int__substack_subscribers
+    description: >
+      Deduped subscriber records, one row per subscription_id (latest snapshot).
+      Feeds the SCD2 snapshot for historical churn tracking.
+
+    columns:
+      - name: snapshot_date
+        description: UTC timestamp of the most recent snapshot for this subscriber.
+
+      - name: subscription_id
+        description: Unique identifier for the subscription, assigned by Substack.
+
+      - name: user_id
+        description: Unique identifier for the user account.
+
+      - name: is_subscribed
+        description: Boolean. True if the subscriber is currently active.
+
+      - name: is_comp
+        description: Boolean. True if this is a complimentary subscription.
+
+      - name: is_gift
+        description: Boolean. True if this subscription was gifted.
+
+      - name: is_free_trial
+        description: Boolean. True if this subscription is a free trial.
+
+      - name: subscription_interval
+        description: Billing interval — monthly or annual.
+
+      - name: activity_rating
+        description: Substack's engagement score for this subscriber.
+
+      - name: subscription_created_at
+        description: UTC timestamp when the subscription was created.
+
+      - name: first_payment_at
+        description: UTC timestamp of the subscriber's first payment.
+
+      - name: subscription_expires_at
+        description: UTC timestamp when the current subscription period expires.
+
+      - name: unsubscribed_at
+        description: UTC timestamp when the subscriber cancelled. Null if still active.
+
+      - name: total_count
+        description: Total subscriber count at the time of this snapshot.

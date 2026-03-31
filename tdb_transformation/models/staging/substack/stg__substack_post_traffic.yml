@@ -1,0 +1,122 @@
+version: 2
+
+models:
+  - name: stg__substack_post_traffic
+    description: >
+      Staging model for Substack post traffic. One row per post per snapshot date.
+      Pivots the referrers, devices, and categories arrays into a wide post-grain format.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: post_id
+        description: Substack post ID.
+        data_type: integer
+        tests:
+          - not_null
+
+      - name: snapshot_date
+        description: UTC timestamp when this payload was captured from the Substack API.
+        data_type: timestamp
+        tests:
+          - not_null
+
+      # Referrer views by source category
+      - name: referrer_views_email
+        description: Views driven by email.
+        data_type: integer
+      - name: referrer_views_direct
+        description: Views from direct traffic.
+        data_type: integer
+      - name: referrer_views_substack
+        description: Views from within the Substack platform.
+        data_type: integer
+      - name: referrer_views_search
+        description: Views from search engines.
+        data_type: integer
+      - name: referrer_views_social
+        description: Views from social media.
+        data_type: integer
+      - name: referrer_views_news
+        description: Views from news aggregators.
+        data_type: integer
+      - name: referrer_views_other_external
+        description: Views from other external sources.
+        data_type: integer
+      - name: referrer_views_other_internal
+        description: Views from other internal Substack sources.
+        data_type: integer
+      - name: referrer_views_other
+        description: Views from uncategorised sources.
+        data_type: integer
+
+      # Paid subscriber views by source category
+      - name: paid_views_email
+        description: Paid subscriber views driven by email.
+        data_type: integer
+      - name: paid_views_direct
+        description: Paid subscriber views from direct traffic.
+        data_type: integer
+      - name: paid_views_substack
+        description: Paid subscriber views from within the Substack platform.
+        data_type: integer
+      - name: paid_views_search
+        description: Paid subscriber views from search engines.
+        data_type: integer
+      - name: paid_views_social
+        description: Paid subscriber views from social media.
+        data_type: integer
+
+      # Free subscriber views by source category
+      - name: free_views_email
+        description: Free subscriber views driven by email.
+        data_type: integer
+      - name: free_views_direct
+        description: Free subscriber views from direct traffic.
+        data_type: integer
+      - name: free_views_substack
+        description: Free subscriber views from within the Substack platform.
+        data_type: integer
+      - name: free_views_search
+        description: Free subscriber views from search engines.
+        data_type: integer
+      - name: free_views_social
+        description: Free subscriber views from social media.
+        data_type: integer
+
+      # Device views
+      - name: device_views_email
+        description: Views via email client.
+        data_type: integer
+      - name: device_views_desktop_web
+        description: Views via desktop web browser.
+        data_type: integer
+      - name: device_views_mobile_web
+        description: Views via mobile web browser.
+        data_type: integer
+      - name: device_views_substack_app
+        description: Views via the Substack mobile app.
+        data_type: integer
+
+      # Category views
+      - name: category_views_email
+        description: Category-level views driven by email.
+        data_type: integer
+      - name: category_views_direct
+        description: Category-level views from direct traffic.
+        data_type: integer
+      - name: category_views_substack
+        description: Category-level views from within the Substack platform.
+        data_type: integer
+      - name: category_views_search
+        description: Category-level views from search engines.
+        data_type: integer
+      - name: category_views_social
+        description: Category-level views from social media.
+        data_type: integer
+      - name: category_views_other_external
+        description: Category-level views from other external sources.
+        data_type: integer
+      - name: category_views_other
+        description: Category-level views from uncategorised sources.
+        data_type: integer

@@ -1,0 +1,9 @@
+snapshots:
+  - name: snp__substack_subscribers
+    relation: ref('int__substack_subscribers')
+    config:
+      unique_key: subscription_id
+      strategy: check
+      check_cols:
+        - unsubscribed_at
+      updated_at: snapshot_date

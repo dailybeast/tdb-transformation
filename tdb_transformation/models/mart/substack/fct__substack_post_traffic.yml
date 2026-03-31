@@ -1,0 +1,113 @@
+version: 2
+
+models:
+  - name: fct__substack_post_traffic
+    description: >
+      Post-grain traffic fact table for The Royalist Substack. One row per post,
+      deduped to the most recent snapshot. Referrer, device, and category arrays
+      are pivoted into a wide format for direct analysis.
+      Source data: raw_landing.substack_royalist___post_traffic.
+
+    columns:
+
+      # --- Keys ---
+      - name: post_id
+        description: Unique integer identifier for the post, assigned by Substack.
+
+      - name: snapshot_date
+        description: UTC timestamp of the most recent snapshot for this post.
+
+      # --- Referrer Views by Source Category ---
+      - name: referrer_views_email
+        description: Views driven by email.
+
+      - name: referrer_views_direct
+        description: Views from direct traffic.
+
+      - name: referrer_views_substack
+        description: Views from within the Substack platform.
+
+      - name: referrer_views_search
+        description: Views from search engines.
+
+      - name: referrer_views_social
+        description: Views from social media.
+
+      - name: referrer_views_news
+        description: Views from news aggregators.
+
+      - name: referrer_views_other_external
+        description: Views from other external sources.
+
+      - name: referrer_views_other_internal
+        description: Views from other internal Substack sources.
+
+      - name: referrer_views_other
+        description: Views from uncategorised sources.
+
+      # --- Paid Subscriber Views by Source Category ---
+      - name: paid_views_email
+        description: Paid subscriber views driven by email.
+
+      - name: paid_views_direct
+        description: Paid subscriber views from direct traffic.
+
+      - name: paid_views_substack
+        description: Paid subscriber views from within the Substack platform.
+
+      - name: paid_views_search
+        description: Paid subscriber views from search engines.
+
+      - name: paid_views_social
+        description: Paid subscriber views from social media.
+
+      # --- Free Subscriber Views by Source Category ---
+      - name: free_views_email
+        description: Free subscriber views driven by email.
+
+      - name: free_views_direct
+        description: Free subscriber views from direct traffic.
+
+      - name: free_views_substack
+        description: Free subscriber views from within the Substack platform.
+
+      - name: free_views_search
+        description: Free subscriber views from search engines.
+
+      - name: free_views_social
+        description: Free subscriber views from social media.
+
+      # --- Device Views ---
+      - name: device_views_email
+        description: Views via email client.
+
+      - name: device_views_desktop_web
+        description: Views via desktop web browser.
+
+      - name: device_views_mobile_web
+        description: Views via mobile web browser.
+
+      - name: device_views_substack_app
+        description: Views via the Substack mobile app.
+
+      # --- Category Views ---
+      - name: category_views_email
+        description: Category-level views driven by email.
+
+      - name: category_views_direct
+        description: Category-level views from direct traffic.
+
+      - name: category_views_substack
+        description: Category-level views from within the Substack platform.
+
+      - name: category_views_search
+        description: Category-level views from search engines.
+
+      - name: category_views_social
+        description: Category-level views from social media.
+
+      - name: category_views_other_external
+        description: Category-level views from other external sources.
+
+      - name: category_views_other
+        description: Category-level views from uncategorised sources.

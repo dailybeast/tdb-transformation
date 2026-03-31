@@ -1,0 +1,35 @@
+version: 2
+
+models:
+  - name: int__substack_post_growth
+    description: >
+      Deduped post growth stats, one row per post (latest snapshot).
+      Contains subscription conversions, signups, and unsubscribes attributed to each post.
+
+    columns:
+      - name: post_id
+        description: Unique integer identifier for the post, assigned by Substack.
+
+      - name: snapshot_date
+        description: UTC timestamp of the most recent snapshot for this post.
+
+      - name: subscribes
+        description: Total new paid subscriptions attributed to this post.
+
+      - name: monthly_subscribes
+        description: New monthly paid subscriptions attributed to this post.
+
+      - name: annual_subscribes
+        description: New annual paid subscriptions attributed to this post.
+
+      - name: free_trials
+        description: New free trials attributed to this post.
+
+      - name: founding_subscribes
+        description: New founding member subscriptions attributed to this post.
+
+      - name: signups
+        description: New free signups attributed to this post.
+
+      - name: unsubscribes
+        description: Unsubscribes attributed to this post.

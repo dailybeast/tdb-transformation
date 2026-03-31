@@ -1,0 +1,37 @@
+version: 2
+
+models:
+  - name: stg__substack_post_comments
+    description: >
+      Staging model for Substack post comments. One row per comment per snapshot date.
+      Includes top-level comments and replies (identified by parent_comment_id).
+      Body is plain text — suitable for downstream LLM use cases.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: comment_id
+        description: Unique identifier for the comment, assigned by Substack.
+        data_type: integer
+        tests:
+          - not_null
+
+      - name: post_id
+        description: The post this comment belongs to.
+        data_type: integer
+        tests:
+          - not_null
+
+      - name: parent_comment_id
+        description: ID of the parent comment if this is a reply. Null for top-level comments.
+        data_type: integer
+
+      - name: body
+        description: Plain text content of the comment.
+        data_type: string
+
+      - name: snapshot_date
+        description: UTC timestamp when this comment was captured from the Substack API.
+        data_type: timestamp
+        tests:
+          - not_null
