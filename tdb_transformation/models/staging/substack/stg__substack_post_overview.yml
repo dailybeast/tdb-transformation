@@ -154,15 +154,15 @@ models:
       # --- Actuals: Rates ---
       - name: open_rate
         description: Unique opens divided by delivered. Expressed as a decimal (e.g. 0.39 = 39%).
-        data_type: float
+        data_type: float64
 
       - name: click_through_rate
         description: Unique clicks divided by delivered. Expressed as a decimal.
-        data_type: float
+        data_type: float64
 
       - name: engagement_rate
         description: Unique engagements (opens + clicks + reactions) divided by delivered. Expressed as a decimal.
-        data_type: float
+        data_type: float64
 
       # --- Actuals: Views & Reads ---
       - name: views
@@ -212,7 +212,7 @@ models:
 
       - name: estimated_value
         description: Substack's estimated revenue value (USD) attributed to this post based on subscriptions driven.
-        data_type: float
+        data_type: float64
 
       # --- Actuals: Churn Signals ---
       - name: unsubscribes
@@ -247,115 +247,115 @@ models:
 
       - name: pub_avg_queued
         description: Publication average emails queued across comparable recent posts.
-        data_type: float
+        data_type: float64
 
       - name: pub_avg_sent
         description: Publication average emails sent across comparable recent posts.
-        data_type: float
+        data_type: float64
 
       - name: pub_avg_delivered
         description: Publication average emails delivered across comparable recent posts.
-        data_type: float
+        data_type: float64
 
       - name: pub_avg_dropped
         description: Publication average emails dropped across comparable recent posts.
-        data_type: float
+        data_type: float64
 
       - name: pub_avg_opened
         description: Publication average unique opens across comparable recent posts.
-        data_type: float
+        data_type: float64
 
       - name: pub_avg_opens
         description: Publication average total open events across comparable recent posts.
-        data_type: float
+        data_type: float64
 
       - name: pub_avg_clicked
         description: Publication average unique clicks across comparable recent posts.
-        data_type: float
+        data_type: float64
 
       - name: pub_avg_clicks
         description: Publication average total click events across comparable recent posts.
-        data_type: float
+        data_type: float64
 
       - name: pub_avg_open_rate
         description: Publication average open rate. Use to benchmark this post's open_rate.
-        data_type: float
+        data_type: float64
 
       - name: pub_avg_click_through_rate
         description: Publication average CTR. Use to benchmark this post's click_through_rate.
-        data_type: float
+        data_type: float64
 
       - name: pub_avg_engagement_rate
         description: Publication average engagement rate. Use to benchmark this post's engagement_rate.
-        data_type: float
+        data_type: float64
 
       - name: pub_avg_views
         description: Publication average total views across comparable recent posts.
-        data_type: float
+        data_type: float64
 
       - name: pub_avg_unique_engagements
         description: Publication average unique engaged readers across comparable recent posts.
-        data_type: float
+        data_type: float64
 
       - name: pub_avg_unique_opens_day7
         description: Publication average unique opens within 7 days of send.
-        data_type: float
+        data_type: float64
 
       - name: pub_avg_unique_opens_day28
         description: Publication average unique opens within 28 days of send.
-        data_type: float
+        data_type: float64
 
       - name: pub_avg_likes
         description: Publication average likes across comparable recent posts.
-        data_type: float
+        data_type: float64
 
       - name: pub_avg_comments
         description: Publication average comment count across comparable recent posts.
-        data_type: float
+        data_type: float64
 
       - name: pub_avg_shares
         description: Publication average shares across comparable recent posts.
-        data_type: float
+        data_type: float64
 
       - name: pub_avg_subscribes
         description: Publication average total paid subscriptions driven per post.
-        data_type: float
+        data_type: float64
 
       - name: pub_avg_monthly_subscribes
         description: Publication average monthly subscriptions driven per post.
-        data_type: float
+        data_type: float64
 
       - name: pub_avg_annual_subscribes
         description: Publication average annual subscriptions driven per post.
-        data_type: float
+        data_type: float64
 
       - name: pub_avg_unsubscribes
         description: Publication average unsubscribes per post.
-        data_type: float
+        data_type: float64
 
       - name: pub_avg_unsubscribes_within_1_day
         description: Publication average unsubscribes within 24 hours of send.
-        data_type: float
+        data_type: float64
 
       - name: pub_avg_disables_within_1_day
         description: Publication average email disables within 24 hours of send.
-        data_type: float
+        data_type: float64
 
       - name: pub_avg_subscriptions_within_1_day
         description: Publication average new paid subscriptions within 24 hours of send.
-        data_type: float
+        data_type: float64
 
       - name: pub_avg_signups_within_1_day
         description: Publication average free signups within 24 hours of send.
-        data_type: float
+        data_type: float64
 
       - name: pub_avg_signups
         description: Publication average total free signups driven per post.
-        data_type: float
+        data_type: float64
 
       - name: pub_avg_estimated_value
         description: Publication average estimated revenue value (USD) attributed per post.
-        data_type: float
+        data_type: float64
 
       - name: stats_updated_at
         description: Unix millisecond timestamp of when Substack last refreshed the stats for this post. Cast to timestamp in the intermediate layer.
