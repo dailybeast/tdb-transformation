@@ -4,6 +4,14 @@ with source as (
     select
         post_id,
         snapshot_date,
+        PARSE_JSON(data) as data
+    from {{ source('raw_landing', 'substack___post_growth') }}
+),
+
+parsed as (
+    select
+        post_id,
+        snapshot_date,
 
         -- Subscription totals
         data.subscribes.totals.subscribes           as subscribes,
@@ -16,7 +24,7 @@ with source as (
         data.signups.total                          as signups,
         data.unsubscribes.total                     as unsubscribes
 
-    from {{ source('raw_landing', 'substack_royalist___post_growth') }}
+    from source
 )
 
-select * from source
+select * from parsed

@@ -7,7 +7,7 @@ sources:
     description: Raw JSON payloads landed from the Substack acquisition script.
 
     tables:
-      - name: substack_royalist___post_overview
+      - name: substack___post_overview
         description: >
           One row per post per snapshot date. Contains the full Substack dashboard
           overview tab payload including post metadata, email delivery stats,
@@ -27,11 +27,11 @@ sources:
             tests:
               - not_null
           - name: data
-            description: Raw JSON payload from the Substack overview endpoint.
+            description: Raw JSON payload from the Substack overview endpoint, serialized as a STRING via json.dumps(). Parsed with PARSE_JSON() in staging.
             tests:
               - not_null
               
-      - name: substack_royalist___subscribers_snapshot
+      - name: substack___subscribers_snapshot
         description: >
           Full export of paid subscribers per snapshot date. One row per snapshot —
           subscriber records are nested in a sub STRUCT and flattened in staging.
@@ -46,7 +46,7 @@ sources:
           - name: sub
             description: STRUCT containing subscriber and subscription fields.
 
-      - name: substack_royalist___post_growth
+      - name: substack___post_growth
         description: >
           One row per post per snapshot date. Contains nested totals and user arrays
           for subscribes, signups, and unsubscribes attributed to each post.
@@ -63,8 +63,10 @@ sources:
             description: UTC timestamp when this payload was captured.
             tests:
               - not_null
+          - name: data
+            description: Raw JSON payload serialized as a STRING via json.dumps(). Parsed with PARSE_JSON() in staging.
 
-      - name: substack_royalist___post_comments
+      - name: substack___post_comments
         description: >
           One row per comment per snapshot date. Includes top-level comments and replies.
           Body is plain text, suitable for LLM use cases.
@@ -85,7 +87,7 @@ sources:
             tests:
               - not_null
 
-      - name: substack_royalist___post_traffic
+      - name: substack___post_traffic
         description: >
           One row per post per snapshot date. Contains nested arrays for referrers,
           devices, and categories. Pivoted into a wide post-grain format in staging.
@@ -99,5 +101,9 @@ sources:
               - not_null
           - name: snapshot_date
             description: UTC timestamp when this payload was captured.
+            tests:
+              - not_null
+          - name: data
+            description: Raw JSON payload serialized as a STRING via json.dumps(). Arrays are unpacked via JSON_QUERY_ARRAY() in staging.
             tests:
               - not_null

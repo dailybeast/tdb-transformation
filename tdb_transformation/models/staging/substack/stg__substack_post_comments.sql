@@ -7,7 +7,7 @@ with source as (
         parent_comment_id,
         body,
         snapshot_date
-    from {{ source('raw_landing', 'substack_royalist___post_comments') }}
+    from {{ source('raw_landing', 'substack___post_comments') }}
 )
 
 select * from source

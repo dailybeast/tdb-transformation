@@ -1,0 +1,25 @@
+tdb_transformation:
+  target: dev
+  outputs:
+
+    dev:
+      type: bigquery
+      method: service-account-json
+      project: data-platform-455517
+      dataset: tdb_dev  # fallback only — model schemas are declared in dbt_project.yml
+      keyfile_json: "{{ env_var('GCP_SERVICE_ACCOUNT_KEY_JSON') }}"
+      location: US
+      priority: interactive
+      timeout_seconds: 300
+      retries: 1
+
+    prod:
+      type: bigquery
+      method: service-account-json
+      project: data-platform-455517
+      dataset: tdb_prd  # fallback only — model schemas are declared in dbt_project.yml
+      keyfile_json: "{{ env_var('GCP_SERVICE_ACCOUNT_KEY_JSON') }}"
+      location: US
+      priority: interactive
+      timeout_seconds: 300
+      retries: 1

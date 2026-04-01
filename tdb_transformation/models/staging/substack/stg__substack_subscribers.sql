@@ -16,7 +16,7 @@ with source as (
         sub.subscription_expires_at  as subscription_expires_at,
         sub.unsubscribed_at          as unsubscribed_at,
         sub.total_count              as total_count
-    from {{ source('raw_landing', 'substack_royalist___subscribers_snapshot') }}
+    from {{ source('raw_landing', 'substack___subscribers_snapshot') }}
 )
 
 select * from source
