@@ -14,15 +14,15 @@ parsed as (
         snapshot_date,
 
         -- Subscription totals
-        data.subscribes.totals.subscribes           as subscribes,
-        data.subscribes.totals.monthly_subscribes   as monthly_subscribes,
-        data.subscribes.totals.annual_subscribes    as annual_subscribes,
-        data.subscribes.totals.free_trials          as free_trials,
-        data.subscribes.totals.founding_subscribes  as founding_subscribes,
+        CAST(data.subscribes.totals.subscribes          AS INT64) as subscribes,
+        CAST(data.subscribes.totals.monthly_subscribes  AS INT64) as monthly_subscribes,
+        CAST(data.subscribes.totals.annual_subscribes   AS INT64) as annual_subscribes,
+        CAST(data.subscribes.totals.free_trials         AS INT64) as free_trials,
+        CAST(data.subscribes.totals.founding_subscribes AS INT64) as founding_subscribes,
 
         -- Signup and unsubscribe totals
-        data.signups.total                          as signups,
-        data.unsubscribes.total                     as unsubscribes
+        CAST(data.signups.total                         AS INT64) as signups,
+        CAST(data.unsubscribes.total                    AS INT64) as unsubscribes
 
     from source
 )
