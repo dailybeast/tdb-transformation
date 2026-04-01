@@ -7,7 +7,7 @@ tdb_transformation:
       method: service-account-json
       project: data-platform-455517
       dataset: tdb_dev  # fallback only — model schemas are declared in dbt_project.yml
-      keyfile_json: "{{ env_var('GCP_SERVICE_ACCOUNT_KEY_JSON') }}"
+      keyfile_json: "{{ env_var('GCP_SA') }}"
       location: US
       priority: interactive
       timeout_seconds: 300
@@ -18,7 +18,7 @@ tdb_transformation:
       method: service-account-json
       project: data-platform-455517
       dataset: tdb_prd  # fallback only — model schemas are declared in dbt_project.yml
-      keyfile_json: "{{ env_var('GCP_SERVICE_ACCOUNT_KEY_JSON') }}"
+      keyfile_json: "{{ env_var('GCP_SA') }}"
       location: US
       priority: interactive
       timeout_seconds: 300
