@@ -1,0 +1,41 @@
+name: dbt CI
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'tdb_transformation/**'
+
+jobs:
+  dbt-ci:
+    name: dbt build (dev)
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: tdb_transformation
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install dbt-bigquery==1.10.2
+
+      - name: Install dbt packages
+        run: dbt deps
+        env:
+          DBT_PROFILES_DIR: .
+
+      - name: dbt build (dev)
+        run: dbt build --target dev
+        env:
+          DBT_PROFILES_DIR: .
+          GCP_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
