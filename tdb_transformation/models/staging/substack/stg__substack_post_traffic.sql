@@ -4,7 +4,7 @@ with source as (
     select
         post_id,
         snapshot_date,
-        PARSE_JSON(data) as data
+        PARSE_JSON(data, wide_number_mode => 'round') as data
     from {{ source('raw_landing', 'substack___post_traffic') }}
 ),
 
