@@ -4,6 +4,7 @@ with source as (
     select
         comment_id,
         post_id,
+        publication,
         parent_comment_id,
         body,
         snapshot_date

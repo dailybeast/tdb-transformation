@@ -18,6 +18,10 @@ models:
         tests:
           - not_null
 
+      - name: publication
+        description: Substack publication handle this post belongs to.
+        data_type: string
+
       - name: snapshot_date
         description: UTC timestamp of when this row was captured from the Substack API. A post may have multiple rows across snapshot dates as stats accumulate.
         data_type: timestamp

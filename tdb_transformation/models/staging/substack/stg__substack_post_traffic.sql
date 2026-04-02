@@ -3,6 +3,7 @@
 with source as (
     select
         post_id,
+        publication,
         snapshot_date,
         PARSE_JSON(data, wide_number_mode => 'round') as data
     from {{ source('raw_landing', 'substack___post_traffic') }}
@@ -11,6 +12,7 @@ with source as (
 pivoted as (
     select
         b.post_id,
+        b.publication,
         snapshot_date,
 
         -- Referrer views by source category
@@ -57,7 +59,7 @@ pivoted as (
         unnest(JSON_QUERY_ARRAY(b.data, '$.referrers'))  as r,
         unnest(JSON_QUERY_ARRAY(b.data, '$.devices'))    as d,
         unnest(JSON_QUERY_ARRAY(b.data, '$.categories')) as c
-    group by post_id, snapshot_date
+    group by post_id, publication, snapshot_date
 )
 
 select * from pivoted

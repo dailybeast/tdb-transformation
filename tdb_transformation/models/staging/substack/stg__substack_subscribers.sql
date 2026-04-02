@@ -3,6 +3,7 @@
 with source as (
     select
         snapshot_date,
+        publication,
         sub.subscription_id          as subscription_id,
         sub.user_id                  as user_id,
         sub.is_subscribed            as is_subscribed,

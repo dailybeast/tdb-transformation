@@ -22,6 +22,10 @@ models:
         tests:
           - not_null
 
+      - name: publication
+        description: Substack publication handle this comment belongs to.
+        data_type: string
+
       - name: parent_comment_id
         description: ID of the parent comment if this is a reply. Null for top-level comments.
         data_type: integer
