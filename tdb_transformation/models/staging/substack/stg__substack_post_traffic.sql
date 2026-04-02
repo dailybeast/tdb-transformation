@@ -9,10 +9,10 @@ with source as (
     from {{ source('raw_landing', 'substack___post_traffic') }}
 ),
 
-pivoted as (
+referrers as (
     select
-        b.post_id,
-        b.publication,
+        post_id,
+        publication,
         snapshot_date,
 
         -- Referrer views by source category
@@ -38,15 +38,35 @@ pivoted as (
         sum(case when JSON_VALUE(r, '$.source_category') = 'Direct'         then SAFE_CAST(JSON_VALUE(r, '$.free_subscriber_views') AS INT64) end) as free_views_direct,
         sum(case when JSON_VALUE(r, '$.source_category') = 'Substack'       then SAFE_CAST(JSON_VALUE(r, '$.free_subscriber_views') AS INT64) end) as free_views_substack,
         sum(case when JSON_VALUE(r, '$.source_category') = 'Search'         then SAFE_CAST(JSON_VALUE(r, '$.free_subscriber_views') AS INT64) end) as free_views_search,
-        sum(case when JSON_VALUE(r, '$.source_category') = 'Social'         then SAFE_CAST(JSON_VALUE(r, '$.free_subscriber_views') AS INT64) end) as free_views_social,
+        sum(case when JSON_VALUE(r, '$.source_category') = 'Social'         then SAFE_CAST(JSON_VALUE(r, '$.free_subscriber_views') AS INT64) end) as free_views_social
 
-        -- Device views
+    from source,
+        unnest(JSON_QUERY_ARRAY(source.data, '$.referrers')) as r
+    group by post_id, publication, snapshot_date
+),
+
+devices as (
+    select
+        post_id,
+        publication,
+        snapshot_date,
+
         sum(case when JSON_VALUE(d, '$.device_type') = 'Email'        then SAFE_CAST(JSON_VALUE(d, '$.views') AS INT64) end) as device_views_email,
         sum(case when JSON_VALUE(d, '$.device_type') = 'Desktop Web'  then SAFE_CAST(JSON_VALUE(d, '$.views') AS INT64) end) as device_views_desktop_web,
         sum(case when JSON_VALUE(d, '$.device_type') = 'Mobile Web'   then SAFE_CAST(JSON_VALUE(d, '$.views') AS INT64) end) as device_views_mobile_web,
-        sum(case when JSON_VALUE(d, '$.device_type') = 'Substack App' then SAFE_CAST(JSON_VALUE(d, '$.views') AS INT64) end) as device_views_substack_app,
+        sum(case when JSON_VALUE(d, '$.device_type') = 'Substack App' then SAFE_CAST(JSON_VALUE(d, '$.views') AS INT64) end) as device_views_substack_app
 
-        -- Category views
+    from source,
+        unnest(JSON_QUERY_ARRAY(source.data, '$.devices')) as d
+    group by post_id, publication, snapshot_date
+),
+
+categories as (
+    select
+        post_id,
+        publication,
+        snapshot_date,
+
         sum(case when JSON_VALUE(c, '$.category_type') = 'Email'          then SAFE_CAST(JSON_VALUE(c, '$.category_views') AS INT64) end) as category_views_email,
         sum(case when JSON_VALUE(c, '$.category_type') = 'Direct'         then SAFE_CAST(JSON_VALUE(c, '$.category_views') AS INT64) end) as category_views_direct,
         sum(case when JSON_VALUE(c, '$.category_type') = 'Substack'       then SAFE_CAST(JSON_VALUE(c, '$.category_views') AS INT64) end) as category_views_substack,
@@ -55,11 +75,45 @@ pivoted as (
         sum(case when JSON_VALUE(c, '$.category_type') = 'Other External' then SAFE_CAST(JSON_VALUE(c, '$.category_views') AS INT64) end) as category_views_other_external,
         sum(case when JSON_VALUE(c, '$.category_type') = 'Other'          then SAFE_CAST(JSON_VALUE(c, '$.category_views') AS INT64) end) as category_views_other
 
-    from source as b,
-        unnest(JSON_QUERY_ARRAY(b.data, '$.referrers'))  as r,
-        unnest(JSON_QUERY_ARRAY(b.data, '$.devices'))    as d,
-        unnest(JSON_QUERY_ARRAY(b.data, '$.categories')) as c
+    from source,
+        unnest(JSON_QUERY_ARRAY(source.data, '$.categories')) as c
     group by post_id, publication, snapshot_date
 )
 
-select * from pivoted
+select
+    referrers.post_id,
+    referrers.publication,
+    referrers.snapshot_date,
+    referrer_views_email,
+    referrer_views_direct,
+    referrer_views_substack,
+    referrer_views_search,
+    referrer_views_social,
+    referrer_views_news,
+    referrer_views_other_external,
+    referrer_views_other_internal,
+    referrer_views_other,
+    paid_views_email,
+    paid_views_direct,
+    paid_views_substack,
+    paid_views_search,
+    paid_views_social,
+    free_views_email,
+    free_views_direct,
+    free_views_substack,
+    free_views_search,
+    free_views_social,
+    device_views_email,
+    device_views_desktop_web,
+    device_views_mobile_web,
+    device_views_substack_app,
+    category_views_email,
+    category_views_direct,
+    category_views_substack,
+    category_views_search,
+    category_views_social,
+    category_views_other_external,
+    category_views_other
+from referrers
+inner join devices    using (post_id, publication, snapshot_date)
+inner join categories using (post_id, publication, snapshot_date)
