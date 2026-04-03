@@ -21,7 +21,7 @@ models:
         tests:
           - not_null
       - name: publication
-        description: Transformed classification for each substack brand.
+        description: Derived classification for each substack brand.
         data_type: string
       - name: post_id_check
         description: Post ID parsed from within the JSON payload — should match post_id.

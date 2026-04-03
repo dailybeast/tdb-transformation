@@ -32,6 +32,7 @@ deduped as (
     select
         post_id,
         snapshot_date,
+        publication,
 
         -- Post metadata
         post_id_check,

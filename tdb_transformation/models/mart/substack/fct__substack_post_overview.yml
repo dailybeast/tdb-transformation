@@ -17,6 +17,9 @@ models:
       - name: snapshot_date
         description: UTC timestamp of when this row was captured from the Substack API. A post may have multiple rows across snapshot dates as stats accumulate.
 
+      - name: publication
+        description: Derived classification for each substack brand.
+
       - name: post_uuid
         description: UUID for the post, used in Substack URLs and internal references.
 
