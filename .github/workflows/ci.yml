@@ -5,16 +5,17 @@ on:
     branches:
       - main
     paths:
-      - 'tdb_transformation/**'
+      - 'models/**'
+      - 'macros/**'
+      - 'snapshots/**'
+      - 'seeds/**'
+      - 'dbt_project.yml'
+      - 'packages.yml'
 
 jobs:
   dbt-ci:
     name: dbt build (dev)
     runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: tdb_transformation
 
     steps:
       - name: Checkout

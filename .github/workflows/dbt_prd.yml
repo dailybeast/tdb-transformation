@@ -5,7 +5,12 @@ on:
     branches:
       - main
     paths:
-      - 'tdb_transformation/**'
+      - 'models/**'
+      - 'macros/**'
+      - 'snapshots/**'
+      - 'seeds/**'
+      - 'dbt_project.yml'
+      - 'packages.yml'
   schedule:
     - cron: '0 10 * * *'  # Daily at 10:00 UTC — adjust to run after acquisition jobs complete
   workflow_dispatch:        # Allow manual trigger from GitHub UI
@@ -14,10 +19,6 @@ jobs:
   dbt-prod:
     name: dbt build (prod)
     runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: tdb_transformation
 
     steps:
       - name: Checkout
