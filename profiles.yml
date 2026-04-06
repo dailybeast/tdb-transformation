@@ -6,7 +6,7 @@ tdb_transformation:
       type: bigquery
       method: service-account-json
       project: data-platform-455517
-      dataset: tdb_dev  # fallback only — model schemas are declared in dbt_project.yml
+      dataset: tdb_transformation_dev
       keyfile_json: "{{ env_var('GCP_SA') }}"
       location: US
       priority: interactive

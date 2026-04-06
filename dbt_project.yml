@@ -20,16 +20,13 @@ models:
       columns: true
 
     staging:
-      +materialized: table
       substack:
-        +schema: stg_substack
+        +schema: substack
 
     intermediate:
-      +materialized: table
       substack:
-        +schema: int_substack
+        +schema: substack
 
     mart:
-      +materialized: table
       substack:
-        +schema: mart_substack
+        +schema: substack

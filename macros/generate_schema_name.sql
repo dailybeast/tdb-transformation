@@ -4,7 +4,7 @@
         {{ default__generate_schema_name(custom_schema_name, node) }}
     
     {%- elif target.name == 'dev' -%}
-        dev__{{ custom_schema_name | trim }}
+        tdb_transformation_dev
     
     {%- else -%}
 
