@@ -1,0 +1,51 @@
+version: 2
+
+models:
+  - name: fct__stripe_substack_month_accrual
+    description: >
+      Monthly grain revenue accrual for Substack Stripe subscriptions. One row per
+      reporting_month × revenue_type × billing_interval. Aggregates recognized
+      revenue from fct__stripe_substack_charge_accrual. A typical month produces
+      three rows: monthly subscriber, annual subscriber, and app_store.
+      Reporting month follows the 16th-to-15th financial calendar.
+      Use this model for month-over-month revenue trending and finance reporting.
+      Feed fct__stripe_substack_month_revenue_projections for forward projections.
+
+    columns:
+      - name: reporting_month
+        description: Financial reporting month formatted as "Month YYYY".
+        tests:
+          - not_null
+
+      - name: reporting_month_start
+        description: First day of the reporting period (16th of the prior month).
+
+      - name: reporting_month_end
+        description: Last day of the reporting period (15th of the reporting month).
+
+      - name: revenue_type
+        description: Source of revenue — subscriber (Stripe charges) or app_store (bulk Apple payout).
+        tests:
+          - not_null
+
+      - name: billing_interval
+        description: >
+          Billing cadence — annual or monthly for subscriber rows.
+          Null for app_store rows.
+
+      - name: recognized_revenue_usd
+        description: >
+          Total recognized revenue in USD for this reporting_month, revenue_type,
+          and billing_interval combination. Annual subscriptions are already spread
+          monthly in the source charge model.
+
+      - name: subscriber_count
+        description: >
+          Count of distinct subscriber emails contributing to recognized revenue
+          in this reporting month. Null for app_store rows. For annual subscribers,
+          one subscriber may appear across multiple reporting months.
+
+      - name: charge_count
+        description: >
+          Count of distinct Stripe charges contributing to this reporting month.
+          For annual subscriptions, the original charge is counted once per spread month.

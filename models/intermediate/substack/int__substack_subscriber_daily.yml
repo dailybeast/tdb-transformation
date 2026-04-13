@@ -1,0 +1,76 @@
+version: 2
+
+models:
+  - name: int__substack_subscriber_daily
+    description: >
+      Daily subscriber grain — one row per subscriber per snapshot date. Spine is
+      the Substack subscriber snapshot, enriched with Stripe subscription context
+      joined on email. Includes all subscribers (paid and free). Billing interval
+      prefers the Stripe invoice-derived value; falls back to parsing stripe_plan_name
+      for subscribers who pay outside Stripe (iOS/Android app purchases).
+    columns:
+      - name: snapshot_date
+        description: UTC timestamp of the Substack snapshot this row belongs to.
+        tests:
+          - not_null
+      - name: publication
+        description: Substack publication identifier (e.g. royalist).
+      - name: subscription_id
+        description: Substack subscription ID.
+        tests:
+          - not_null
+      - name: user_id
+        description: Substack user ID.
+      - name: email
+        description: Subscriber email address.
+      - name: subscription_interval
+        description: Substack subscription interval (monthly, annual, lifetime).
+      - name: stripe_plan_name
+        description: Plan label from Substack export (e.g. "$7 a month", "$60 a year").
+      - name: paid_attribution
+        description: Paid acquisition channel attributed by Substack (direct, paywall, ios-app-link, etc.).
+      - name: free_attribution
+        description: Free acquisition channel attributed by Substack, where available.
+      - name: is_subscribed
+        description: Whether the subscriber is currently active per Substack.
+      - name: is_comp
+        description: Whether this is a complimentary subscription.
+      - name: is_gift
+        description: Whether this subscription was gifted.
+      - name: is_free_trial
+        description: Whether this is a free trial subscription.
+      - name: activity_rating
+        description: Substack engagement score for this subscriber.
+      - name: subscription_created_at
+        description: Timestamp when the Substack subscription was created.
+      - name: first_payment_at
+        description: Timestamp of the subscriber's first payment.
+      - name: subscription_expires_at
+        description: Timestamp when the current subscription period expires.
+      - name: unsubscribed_at
+        description: Timestamp when the subscriber cancelled. Null if still active.
+      - name: stripe_subscription_id
+        description: Matched Stripe subscription ID. Null for non-Stripe paid subscribers.
+      - name: stripe_status
+        description: Stripe subscription status at the time of the latest Fivetran sync.
+      - name: current_period_start
+        description: Start of the current Stripe billing period, sourced from latest invoice.
+      - name: current_period_end
+        description: End of the current Stripe billing period, sourced from latest invoice.
+      - name: cancel_at_period_end
+        description: Whether the Stripe subscription is set to cancel at period end.
+      - name: canceled_at
+        description: Timestamp when the Stripe subscription was cancelled.
+      - name: billing_interval
+        description: >
+          Resolved billing cadence (annual or monthly). Prefers Stripe invoice-derived
+          value; falls back to parsing stripe_plan_name for non-Stripe paid subscribers.
+      - name: imputed_price_usd
+        description: >
+          Dollar amount extracted from stripe_plan_name (e.g. 7.0 for "$7 a month").
+          Used as a price proxy for non-Stripe paid subscribers where Stripe revenue
+          data is unavailable.
+      - name: is_non_stripe_paid
+        description: >
+          True when first_payment_at is populated but no Stripe subscription was
+          matched. Indicates an iOS/Android app store subscriber.

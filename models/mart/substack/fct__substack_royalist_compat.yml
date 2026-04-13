@@ -1,0 +1,47 @@
+version: 2
+
+models:
+  - name: fct__substack_royalist_compat
+    description: >
+      Backwards-compatibility view mapping fct__substack_subscriber_daily to the
+      legacy column schema expected by the analytics team's current subscriber SQL
+      (current_approach_subscriber_mart.sql). Preserves the same column names and
+      value semantics as the original royalist_daily_snapshot table.
+
+      This view exists to avoid rewiring downstream consumers during the migration.
+      Once consumers are updated to reference fct__substack_subscriber_daily directly,
+      this view can be retired.
+
+    columns:
+      - name: snapshot_date
+        description: UTC timestamp of the Substack snapshot.
+
+      - name: email
+        description: Subscriber email address.
+
+      - name: name
+        description: Always null. Subscriber name is not available in the Substack export.
+
+      - name: type
+        description: >
+          Reconstructed subscription type string compatible with the legacy bucketing
+          logic. Values: monthly gift, yearly gift, royalist, comp, yearly, monthly,
+          subscriber.
+
+      - name: start_date
+        description: Subscription start timestamp. Maps to subscription_created_at.
+
+      - name: first_paid_date
+        description: Timestamp of first payment. Maps to first_payment_at.
+
+      - name: cancel_date
+        description: Cancellation timestamp. Maps to unsubscribed_at.
+
+      - name: expiration_date
+        description: Subscription expiry timestamp. Maps to subscription_expires_at.
+
+      - name: revenue
+        description: >
+          Imputed price in USD derived from stripe_plan_name (e.g. 60.0 for annual,
+          7.0 for monthly). Satisfies the >= 50 / > 0 thresholds used in the legacy
+          comp bucketing logic.

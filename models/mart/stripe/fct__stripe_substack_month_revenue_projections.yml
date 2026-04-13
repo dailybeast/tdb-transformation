@@ -1,0 +1,61 @@
+version: 2
+
+models:
+  - name: fct__stripe_substack_month_revenue_projections
+    description: >
+      One-month forward revenue projection for the next financial reporting period.
+      Combines three revenue streams: monthly Stripe subscriber renewals (scheduled
+      renewal window), annual Stripe subscriber ongoing recognition (all active annual
+      subs at 1/12 of annual fee), and App Store estimate (prior month payout carried
+      forward). Churn and new acquisition adjustments are applied to subscriber rows
+      using median counts from the last 3 completed reporting months.
+      All rows carry projection_type = 'projected'.
+
+    columns:
+      - name: projected_reporting_month
+        description: The reporting month being projected, formatted as "Month YYYY".
+        tests:
+          - not_null
+
+      - name: reporting_month_start
+        description: First day of the projected reporting period (16th of prior month).
+
+      - name: reporting_month_end
+        description: Last day of the projected reporting period (15th of reporting month).
+
+      - name: revenue_type
+        description: Source of revenue — subscriber or app_store.
+        tests:
+          - not_null
+
+      - name: billing_interval
+        description: >
+          Billing cadence — monthly or annual for subscriber rows. Null for app_store rows.
+
+      - name: scheduled_revenue
+        description: >
+          Base projected revenue before churn/starts adjustments.
+          Monthly subscribers: sum of last_invoice_amount_usd for subs renewing in window.
+          Annual subscribers: sum of all active annual last_invoice_amount_usd / 12.
+          App Store: most recent monthly payout carried forward as estimate.
+
+      - name: expected_churn_revenue
+        description: >
+          Revenue expected to be lost due to churn. Computed as median monthly churn
+          count (last 3 completed months) × avg recognized revenue per subscriber.
+          Null for app_store rows.
+
+      - name: expected_new_start_revenue
+        description: >
+          Revenue expected from new subscriber acquisitions. Computed as median monthly
+          new start count (last 3 completed months) × avg recognized revenue per subscriber.
+          Null for app_store rows.
+
+      - name: projected_recognized_revenue
+        description: >
+          Final projected recognized revenue for the reporting month.
+          Calculated as: scheduled_revenue - expected_churn_revenue + expected_new_start_revenue.
+          For app_store rows equals scheduled_revenue directly.
+
+      - name: projection_type
+        description: Always 'projected'. Distinguishes this model's rows from actuals in fct__stripe_substack_month_accrual.

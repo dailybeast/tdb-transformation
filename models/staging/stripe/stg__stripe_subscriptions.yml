@@ -1,0 +1,64 @@
+version: 2
+
+models:
+  - name: stg__stripe_subscriptions
+    description: >
+      One row per subscription state change from Fivetran's SCD2 subscription_history table.
+      Includes both active and historical rows — use _fivetran_active = true to get current state.
+      Intermediate layer is responsible for deduplication.
+    columns:
+      - name: subscription_id
+        data_type: string
+        tests:
+          - not_null
+
+      - name: customer_id
+        data_type: string
+        tests:
+          - not_null
+
+      - name: status
+        data_type: string
+        description: Stripe subscription status (active, canceled, past_due, trialing, etc.)
+
+      - name: current_period_start
+        data_type: timestamp
+
+      - name: current_period_end
+        data_type: timestamp
+        description: End of the current billing period. Used to infer billing interval and next renewal date.
+
+      - name: cancel_at_period_end
+        data_type: boolean
+        description: True if the subscription is set to cancel at the end of the current period.
+
+      - name: cancel_at
+        data_type: timestamp
+
+      - name: canceled_at
+        data_type: timestamp
+
+      - name: ended_at
+        data_type: timestamp
+
+      - name: subscription_created_at
+        data_type: timestamp
+
+      - name: start_date
+        data_type: timestamp
+
+      - name: trial_start
+        data_type: timestamp
+
+      - name: trial_end
+        data_type: timestamp
+
+      - name: _fivetran_active
+        data_type: boolean
+        description: True for the current/active row in Fivetran's SCD2 tracking.
+
+      - name: _fivetran_start
+        data_type: timestamp
+
+      - name: _fivetran_end
+        data_type: timestamp

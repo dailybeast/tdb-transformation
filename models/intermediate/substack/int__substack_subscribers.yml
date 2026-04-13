@@ -48,3 +48,6 @@ models:
 
       - name: total_count
         description: Total subscriber count at the time of this snapshot.
+      
+      - name: email
+        description: subscriber email

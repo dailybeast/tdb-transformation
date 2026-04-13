@@ -1,0 +1,79 @@
+version: 2
+
+models:
+  - name: fct__stripe_substack_charge_accrual
+    description: >
+      Charge-grain revenue accrual for Substack Stripe subscriptions. One row per
+      charge for monthly subscriptions; 12 rows per charge (one per reporting month)
+      for annual subscriptions. Annual revenue is spread evenly at net_amount_usd / 12
+      per month. Includes App Store bulk payouts as publication-level rows with null
+      subscriber fields. Reporting month follows the 16th-to-15th financial calendar.
+      Use fct__stripe_substack_month_accrual for roll-up analysis.
+
+    columns:
+      - name: charge_id
+        description: Stripe charge ID.
+        tests:
+          - not_null
+
+      - name: subscription_id
+        description: Stripe subscription ID. Null for App Store payout rows.
+
+      - name: customer_id
+        description: Stripe customer ID. Null for App Store payout rows.
+
+      - name: email
+        description: Subscriber email from Stripe customer table. Null for App Store payout rows.
+
+      - name: billing_interval
+        description: >
+          Billing cadence — annual or monthly. Derived from Substack subscription_interval
+          via ss_subscription_interval, with amount-based fallback (>= $50 = annual).
+          Null for App Store payout rows.
+
+      - name: ss_subscription_interval
+        description: >
+          Subscription interval from the Substack export (monthly, annual, lifetime).
+          Used as the primary source for billing_interval derivation.
+          Null for App Store payout rows.
+
+      - name: charged_at
+        description: Timestamp of the original Stripe charge or App Store payout receipt.
+
+      - name: charge_currency
+        description: Presentment currency of the charge.
+
+      - name: exchange_rate
+        description: FX rate applied to convert to USD. Null for USD charges and App Store rows.
+
+      - name: settled_amount_usd
+        description: Gross settled amount in USD from the balance transaction.
+
+      - name: net_amount_usd
+        description: Net amount in USD after Stripe fees.
+
+      - name: reporting_month
+        description: >
+          Financial reporting month this row belongs to, formatted as "Month YYYY".
+          For annual subscriptions, each of the 12 spread rows has a different reporting_month.
+
+      - name: recognized_revenue_usd
+        description: >
+          Revenue recognized in this reporting month. Monthly charges recognized in full.
+          Annual charges spread as round(net_amount_usd / 12, 2) per month.
+          App Store rows recognized in full as net_amount_usd.
+
+      - name: month_offset
+        description: >
+          0 for monthly charges and the first month of annual spreads.
+          1-11 for subsequent months of an annual subscription spread.
+          Always 0 for App Store payout rows.
+
+      - name: revenue_type
+        description: Source of the revenue — subscriber (individual Stripe charge) or app_store (bulk Apple payout).
+
+      - name: reporting_month_start
+        description: First day of the reporting period (16th of the prior month).
+
+      - name: reporting_month_end
+        description: Last day of the reporting period (15th of the reporting month).
