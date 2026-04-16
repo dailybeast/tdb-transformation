@@ -7,7 +7,7 @@ models:
       Combines Substack subscription identity and status with Stripe billing context.
       Adds computed type_bucket and status_bucket fields for analytics use.
       Materialized as an incremental table partitioned by snapshot_date.
-      Feeds fct__substack_royalist_compat for backwards-compatible analytics handoff,
+      Feeds fct__substack_subscriber_compat for backwards-compatible analytics handoff,
       and the Stripe accrual marts for revenue reporting.
 
     columns:

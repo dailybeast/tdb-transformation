@@ -1,20 +1,23 @@
 version: 2
 
 models:
-  - name: fct__substack_royalist_compat
+  - name: fct__substack_subscriber_compat
     description: >
       Backwards-compatibility view mapping fct__substack_subscriber_daily to the
       legacy column schema expected by the analytics team's current subscriber SQL
       (current_approach_subscriber_mart.sql). Preserves the same column names and
       value semantics as the original royalist_daily_snapshot table.
 
-      This view exists to avoid rewiring downstream consumers during the migration.
-      Once consumers are updated to reference fct__substack_subscriber_daily directly,
-      this view can be retired.
+      Covers all publications. This view exists to avoid rewiring downstream consumers
+      during the migration. Once consumers are updated to reference
+      fct__substack_subscriber_daily directly, this view can be retired.
 
     columns:
       - name: snapshot_date
         description: UTC timestamp of the Substack snapshot.
+
+      - name: publication
+        description: The Substack publication this subscriber belongs to.
 
       - name: email
         description: Subscriber email address.
