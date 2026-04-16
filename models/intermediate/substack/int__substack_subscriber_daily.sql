@@ -70,7 +70,6 @@ stripe_subs as (
     str.cancel_at_period_end,
     str.canceled_at,
     --derived fields
-<<<<<<< HEAD
     coalesce(
         str.stripe_billing_interval,
         case
@@ -78,14 +77,6 @@ stripe_subs as (
             when lower(ss.stripe_plan_name) like '%month%' then 'monthly'
         end
     )                                   as billing_interval,
-=======
-            case
-                when ss.subscription_interval = 'annual'       then 'annual'
-                when ss.subscription_interval = 'monthly'      then 'monthly'
-                when str.stripe_billing_interval = 'annual'    then 'annual'
-                else 'monthly'
-            end                                                as billing_interval,
->>>>>>> d009ab0aae36c911fb8cd277bf018397fb72f3fd
 
     safe_cast(
         regexp_extract(ss.stripe_plan_name, r'\$(\d+(?:\.\d+)?)')

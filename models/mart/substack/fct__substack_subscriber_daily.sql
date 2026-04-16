@@ -9,19 +9,18 @@
 ) }}
 
 with base as (
-    select * 
+    select *
     from {{ ref('int__substack_subscriber_daily' ) }}
     {% if is_incremental() %}
     where date(snapshot_date) >= date_sub(current_date(), interval 3 day)
     {% endif %}
-), 
+),
 
 buckets as (
     select
         *,
 
         case
-<<<<<<< HEAD
             when is_gift and billing_interval = 'monthly'  then 'Monthly Gift'
             when is_gift and billing_interval = 'annual'   then 'Yearly Gift'
             when subscription_interval = 'lifetime'        then 'Royal Tier'
@@ -31,17 +30,6 @@ buckets as (
             when billing_interval = 'annual'               then 'Yearly Subscriber'
             when billing_interval = 'monthly'              then 'Monthly Subscriber'
             else 'Other'
-=======
-            when publication = 'royalist' and is_gift and billing_interval = 'monthly'  then 'Monthly Gift'
-            when publication = 'royalist' and is_gift and billing_interval = 'annual'   then 'Yearly Gift'
-            when publication = 'royalist' and subscription_interval = 'lifetime'        then 'Royal Tier'
-            when publication = 'royalist' and is_comp and billing_interval = 'annual'   then 'Yearly Subscriber'
-            when publication = 'royalist' and is_comp and billing_interval = 'monthly'  then 'Monthly Subscriber'
-            when publication = 'royalist' and is_comp                                   then 'Comp'
-            when publication = 'royalist' and billing_interval = 'annual'               then 'Yearly Subscriber'
-            when publication = 'royalist' and billing_interval = 'monthly'              then 'Monthly Subscriber'
-            else 'Not included in type definition yet'
->>>>>>> d009ab0aae36c911fb8cd277bf018397fb72f3fd
         end as type_bucket,
 
         case

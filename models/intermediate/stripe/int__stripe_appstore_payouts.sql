@@ -5,10 +5,8 @@ with source as (
     from {{ ref('stg__stripe_charges') }}
     where description like 'Earnings from App Store subscriptions for%'
 ),
-
-    
 parsed as (
-    select 
+    select
         charge_id,
         charged_at,
         description,

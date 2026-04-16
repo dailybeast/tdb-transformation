@@ -5,7 +5,7 @@ sources:
     database: ai-mvp-392019
     schema: stripe
     description: >
-      Currently all substack commerce is run through stripe. 
+      Currently all substack commerce is run through stripe.
       As we integrate stripe across more of the business the size of this source and staging
       layer will grow.
 

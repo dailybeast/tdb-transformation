@@ -38,14 +38,10 @@ actuals_base as (
         reporting_month_start,
         reporting_month_end,
         billing_interval,
-<<<<<<< HEAD
         recognized_revenue_usd                            as revenue,
         subscriber_count,
         round(safe_divide(recognized_revenue_usd, subscriber_count), 2)
                                                           as avg_rev_per_sub,
-=======
-        stripe_recognized_revenue_usd                     as revenue,
->>>>>>> d009ab0aae36c911fb8cd277bf018397fb72f3fd
         row_number() over (
             partition by billing_interval
             order by reporting_month_end
@@ -57,7 +53,6 @@ actuals_base as (
 
 historical_starts as (
     select
-<<<<<<< HEAD
         billing_interval,
         format_date('%B %Y',
             case
@@ -69,30 +64,11 @@ historical_starts as (
         count(distinct subscription_id)                   as start_count
     from {{ ref('int__stripe_substack_subscriptions') }}
     where subscription_created_at is not null
-=======
-        s.billing_interval,
-        format_date('%B %Y',
-            case
-                when extract(day from date(s.subscription_created_at)) >= 16
-                    then date_trunc(date(s.subscription_created_at), month)
-                else date_sub(date_trunc(date(s.subscription_created_at), month), interval 1 month)
-            end
-        )                                                 as reporting_month,
-        count(distinct s.subscription_id)                 as start_count
-    from {{ ref('int__stripe_substack_subscriptions') }} s
-    where s.subscription_created_at is not null
-        and exists (
-            select 1
-            from {{ ref('int__stripe_substack_charges') }} c
-            where c.subscription_id = s.subscription_id
-        )
->>>>>>> d009ab0aae36c911fb8cd277bf018397fb72f3fd
     group by 1, 2
 ),
 
 historical_churn as (
     select
-<<<<<<< HEAD
         billing_interval,
         format_date('%B %Y',
             case
@@ -104,24 +80,6 @@ historical_churn as (
         count(distinct subscription_id)                   as churn_count
     from {{ ref('int__stripe_substack_subscriptions') }}
     where canceled_at is not null
-=======
-        s.billing_interval,
-        format_date('%B %Y',
-            case
-                when extract(day from date(s.canceled_at)) >= 16
-                    then date_trunc(date(s.canceled_at), month)
-                else date_sub(date_trunc(date(s.canceled_at), month), interval 1 month)
-            end
-        )                                                 as reporting_month,
-        count(distinct s.subscription_id)                 as churn_count
-    from {{ ref('int__stripe_substack_subscriptions') }} s
-    where s.canceled_at is not null
-        and exists (
-            select 1
-            from {{ ref('int__stripe_substack_charges') }} c
-            where c.subscription_id = s.subscription_id
-        )
->>>>>>> d009ab0aae36c911fb8cd277bf018397fb72f3fd
     group by 1, 2
 ),
 
@@ -132,7 +90,6 @@ starts_revenue as (
         round(sum(ca.recognized_revenue_usd), 2)          as starts_revenue
     from {{ ref('fct__stripe_substack_charge_accrual') }} ca
     join {{ ref('int__stripe_substack_subscriptions') }} s
-<<<<<<< HEAD
         on  s.subscription_id = ca.subscription_id
         and ca.reporting_month_start = date_add(
             case
@@ -165,53 +122,6 @@ churn_revenue as (
         )
     where ca.revenue_type = 'subscriber'
         and s.canceled_at is not null
-=======
-        on s.subscription_id = ca.subscription_id
-    where ca.revenue_type = 'subscriber'
-        and s.subscription_created_at is not null
-        and ca.month_offset = 0
-        and format_date('%B %Y', ca.reporting_month_start) = format_date('%B %Y',
-            date_add(
-                case
-                    when extract(day from date(s.subscription_created_at)) >= 16
-                        then date_trunc(date(s.subscription_created_at), month)
-                    else date_sub(date_trunc(date(s.subscription_created_at), month), interval 1 month)
-                end,
-                interval 15 day
-            )
-        )
-    group by 1, 2
-),
-
-churn_last_charge as (
-    select
-        s.subscription_id,
-        s.billing_interval,
-        s.canceled_at,
-        c.recognized_revenue_usd
-    from {{ ref('int__stripe_substack_subscriptions') }} s
-    join {{ ref('int__stripe_substack_charges') }} c
-        on  c.subscription_id = s.subscription_id
-    where s.canceled_at is not null
-    qualify row_number() over (
-        partition by s.subscription_id
-        order by c.charged_at desc
-    ) = 1
-),
-
-churn_revenue as (
-    select
-        billing_interval,
-        format_date('%B %Y',
-            case
-                when extract(day from date(canceled_at)) >= 16
-                    then date_trunc(date(canceled_at), month)
-                else date_sub(date_trunc(date(canceled_at), month), interval 1 month)
-            end
-        )                                           as reporting_month,
-        round(sum(recognized_revenue_usd), 2)       as churn_revenue
-    from churn_last_charge
->>>>>>> d009ab0aae36c911fb8cd277bf018397fb72f3fd
     group by 1, 2
 ),
 
@@ -289,7 +199,7 @@ revenue_ewma as (
         round(
             (
                 16 * case when d1 > 1.5 * ((d1+d2+d3+d4+d5 - greatest(d1,d2,d3,d4,d5) - least(d1,d2,d3,d4,d5)) / 3.0)
-                        then (d1+d2+d3+d4+d5 - greatest(d1,d2,d3,d4,d5) - least(d1,d2,d3,d4,d5)) / 3.0
+                        then (d1+d2+d3+d4+d5 - greatest(d1,d2,d3+d4+d5) - least(d1,d2,d3,d4,d5)) / 3.0
                         else d1 end +
                  8 * case when d2 > 1.5 * ((d1+d2+d3+d4+d5 - greatest(d1,d2,d3,d4,d5) - least(d1,d2,d3,d4,d5)) / 3.0)
                         then (d1+d2+d3+d4+d5 - greatest(d1,d2,d3,d4,d5) - least(d1,d2,d3,d4,d5)) / 3.0
@@ -329,51 +239,23 @@ revenue_ewma as (
 
 live_starts as (
     select
-<<<<<<< HEAD
         billing_interval,
         count(distinct subscription_id)                   as starts_to_date
     from {{ ref('int__stripe_substack_subscriptions') }}
     cross join reporting_window rw
     where date(subscription_created_at)
         between rw.period_start and current_date()
-=======
-        s.billing_interval,
-        count(distinct s.subscription_id)                 as starts_to_date
-    from {{ ref('int__stripe_substack_subscriptions') }} s
-    cross join reporting_window rw
-    where date(s.subscription_created_at)
-        between rw.period_start and current_date()
-        and exists (
-            select 1
-            from {{ ref('int__stripe_substack_charges') }} c
-            where c.subscription_id = s.subscription_id
-        )
->>>>>>> d009ab0aae36c911fb8cd277bf018397fb72f3fd
     group by 1
 ),
 
 live_churn as (
     select
-<<<<<<< HEAD
         billing_interval,
         count(distinct subscription_id)                   as churn_to_date
     from {{ ref('int__stripe_substack_subscriptions') }}
     cross join reporting_window rw
     where date(canceled_at)
         between rw.period_start and current_date()
-=======
-        s.billing_interval,
-        count(distinct s.subscription_id)                 as churn_to_date
-    from {{ ref('int__stripe_substack_subscriptions') }} s
-    cross join reporting_window rw
-    where date(s.canceled_at)
-        between rw.period_start and current_date()
-        and exists (
-            select 1
-            from {{ ref('int__stripe_substack_charges') }} c
-            where c.subscription_id = s.subscription_id
-        )
->>>>>>> d009ab0aae36c911fb8cd277bf018397fb72f3fd
     group by 1
 ),
 
@@ -398,12 +280,9 @@ select
         then round(rw.elapsed_days / rw.total_days * 100, 1)
     end                                                   as pct_period_elapsed,
     round(re.prior_revenue, 2)                            as recurring_revenue,
-<<<<<<< HEAD
     case when re.row_type = 'closed'
         then a.subscriber_count
     end                                                   as recurring_subscribers,
-=======
->>>>>>> d009ab0aae36c911fb8cd277bf018397fb72f3fd
     case
         when re.row_type = 'closed' then hs.start_count
         when re.row_type = 'live'   then ls.starts_to_date
@@ -411,14 +290,9 @@ select
     case when re.row_type = 'live'
         then round(ls.starts_to_date / rw.elapsed_days * rw.total_days, 1)
     end                                                   as starts_prorated,
-<<<<<<< HEAD
     case when re.row_type = 'closed'
         then sr.starts_revenue
     end                                                   as starts_revenue,
-=======
-
-    sr.starts_revenue,
->>>>>>> d009ab0aae36c911fb8cd277bf018397fb72f3fd
     case
         when re.row_type = 'closed' then hc.churn_count
         when re.row_type = 'live'   then lc.churn_to_date
@@ -426,14 +300,9 @@ select
     case when re.row_type = 'live'
         then round(lc.churn_to_date / rw.elapsed_days * rw.total_days, 1)
     end                                                   as churn_prorated,
-<<<<<<< HEAD
     case when re.row_type = 'closed'
         then cr.churn_revenue
     end                                                   as churn_revenue,
-=======
-
-    cr.churn_revenue,
->>>>>>> d009ab0aae36c911fb8cd277bf018397fb72f3fd
     case
         when re.row_type = 'closed' then round(a.revenue, 2)
         when re.row_type = 'live'   then lr.revenue_to_date
@@ -469,4 +338,3 @@ left join live_churn lc
 left join live_revenue lr
     on  lr.billing_interval = re.billing_interval
 order by re.billing_interval, re.target_end
-
