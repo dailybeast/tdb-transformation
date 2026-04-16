@@ -30,8 +30,6 @@ sources:
         description: >
           Email address — the bridge to your Substack snapshot
 
-<<<<<<< HEAD
-=======
       - name: refund
         description: >
           Succeeded refunds against charges. Joined to balance_transaction
@@ -47,7 +45,6 @@ sources:
           Stripe plan dimension. interval field ('month' or 'year') is the
           authoritative billing interval signal.
 
->>>>>>> d009ab0aae36c911fb8cd277bf018397fb72f3fd
 
 
 
