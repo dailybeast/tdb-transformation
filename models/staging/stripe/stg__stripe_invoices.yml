@@ -44,9 +44,6 @@ models:
 
       - name: status
         data_type: string
-<<<<<<< HEAD
-        description: Invoice status (paid, open, void, uncollectible).
-=======
         description: Invoice status (paid, open, void, uncollectible).
 
       - name: billing_reason
@@ -54,4 +51,3 @@ models:
         description: >
           Reason this invoice was created. Key values: subscription_create (first charge
           for a new subscription), subscription_cycle (renewal charge).
->>>>>>> d009ab0aae36c911fb8cd277bf018397fb72f3fd

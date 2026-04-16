@@ -5,15 +5,10 @@ with source as (
     from {{ ref('stg__stripe_charges') }}
     where description like 'Earnings from App Store subscriptions for%'
 ),
-<<<<<<< HEAD
+
     
 parsed as (
     select 
-=======
-
-parsed as (
-    select
->>>>>>> d009ab0aae36c911fb8cd277bf018397fb72f3fd
         charge_id,
         charged_at,
         description,
@@ -26,7 +21,6 @@ parsed as (
             regexp_extract(description, r'for (.+)$')
         ) as payout_month_date
     from source
-<<<<<<< HEAD
 )
 
     select
@@ -41,7 +35,7 @@ parsed as (
         date_add(date_sub(payout_month_date, interval 1 month), interval 15 day) as reporting_month_start,
         date_add(payout_month_date, interval 14 day) as reporting_month_end
     from parsed
-=======
+
 ),
 
 finance_months as (
@@ -67,4 +61,3 @@ select
     date_add(finance_month_date, interval 15 day)                              as reporting_month_start,
     date_add(date_add(finance_month_date, interval 1 month), interval 14 day)  as reporting_month_end
 from finance_months
->>>>>>> d009ab0aae36c911fb8cd277bf018397fb72f3fd
