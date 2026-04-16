@@ -28,24 +28,30 @@ balance_transactions as (
     from {{ source('stripe', 'balance_transaction') }}
 ),
 
-joined as (
+refunds as (
     select
-        c.charge_id,
-        c.customer_id,
-        c.invoice_id,
-        c.balance_transaction_id,
-        c.charged_at,
-        c.charge_amount,
-        c.charge_currency,
-        c.receipt_email,
-        c.description,
-        bt.settled_amount_usd,
-        bt.stripe_fee_usd,
-        bt.net_amount_usd,
-        bt.exchange_rate
-    from charges c
-    left join balance_transactions bt
-        on bt.id = c.balance_transaction_id
+        charge_id,
+        sum(refunded_net_usd)   as total_refunded_net_usd
+    from {{ ref('stg__stripe_refunds') }}
+    group by 1
 )
 
-select * from joined
+select
+    c.charge_id,
+    c.customer_id,
+    c.invoice_id,
+    c.balance_transaction_id,
+    c.charged_at,
+    c.charge_amount,
+    c.charge_currency,
+    c.receipt_email,
+    c.description,
+    bt.settled_amount_usd,
+    bt.stripe_fee_usd,
+    bt.net_amount_usd - coalesce(r.total_refunded_net_usd, 0) as net_amount_usd,
+    bt.exchange_rate
+from charges c
+left join balance_transactions bt
+    on bt.id = c.balance_transaction_id
+left join refunds r
+    on r.charge_id = c.charge_id

@@ -44,8 +44,3 @@ sources:
         description: >
           Stripe plan dimension. interval field ('month' or 'year') is the
           authoritative billing interval signal.
-
-
-
-
-     
