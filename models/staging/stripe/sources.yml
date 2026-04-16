@@ -29,3 +29,23 @@ sources:
       - name: customer
         description: >
           Email address — the bridge to your Substack snapshot
+
+      - name: refund
+        description: >
+          Succeeded refunds against charges. Joined to balance_transaction
+          to get the exact refunded net USD amount after FX conversion.
+
+      - name: subscription_item
+        description: >
+          Links subscriptions to plans. One row per item per subscription
+          (most Substack subs have one item). Snapshot table synced via _fivetran_synced.
+
+      - name: plan
+        description: >
+          Stripe plan dimension. interval field ('month' or 'year') is the
+          authoritative billing interval signal.
+
+
+
+
+     
