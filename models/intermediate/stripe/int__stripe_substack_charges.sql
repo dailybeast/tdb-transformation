@@ -4,11 +4,16 @@ with charges as (
     select *
     from {{ ref('stg__stripe_charges') }}
     where invoice_id is not null
+<<<<<<< HEAD
     ), 
+=======
+    ),
+>>>>>>> d009ab0aae36c911fb8cd277bf018397fb72f3fd
 
     invoices as (
         select
             invoice_id,
+<<<<<<< HEAD
             subscription_id,
         from {{ ref('stg__stripe_invoices') }}
         where subscription_id is not null
@@ -22,18 +27,33 @@ with charges as (
         qualify row_number() over (partition by email order by snapshot_date desc) = 1
     ),
 
+=======
+            subscription_id
+        from {{ ref('stg__stripe_invoices') }}
+        where subscription_id is not null
+    ),
+>>>>>>> d009ab0aae36c911fb8cd277bf018397fb72f3fd
 
     subscriptions as (
         select
             subscription_id,
             customer_id,
             email,
+<<<<<<< HEAD
             status
+=======
+            status,
+            billing_interval
+>>>>>>> d009ab0aae36c911fb8cd277bf018397fb72f3fd
         from {{ ref('int__stripe_substack_subscriptions') }}
     ),
 
     base as (
+<<<<<<< HEAD
         select 
+=======
+        select
+>>>>>>> d009ab0aae36c911fb8cd277bf018397fb72f3fd
             ch.charge_id,
             ch.charged_at,
             ch.charge_currency,
@@ -43,6 +63,7 @@ with charges as (
             inv.subscription_id,
             sub.customer_id,
             sub.email,
+<<<<<<< HEAD
             case
                 when stack_subs.ss_subscription_interval = 'annual'  then 'annual'
                 when stack_subs.ss_subscription_interval = 'monthly' then 'monthly'
@@ -58,19 +79,34 @@ with charges as (
             on sub.subscription_id = inv.subscription_id
         left join substack_subs as stack_subs
             on stack_subs.email = sub.email
+=======
+            sub.billing_interval,
+            sub.status
+        from charges ch
+        inner join invoices inv
+            on inv.invoice_id = ch.invoice_id
+        inner join subscriptions sub
+            on sub.subscription_id = inv.subscription_id
+>>>>>>> d009ab0aae36c911fb8cd277bf018397fb72f3fd
     ),
 
     finance_months as (
         select
             *,
             case when extract(day from date(charged_at)) >= 16
+<<<<<<< HEAD
                 then date_trunc(date_add(date(charged_at), interval 1 month), month)
                 else date_trunc(date(charged_at), month)
+=======
+                then date_trunc(date(charged_at), month)
+                          else date_sub(date_trunc(date(charged_at), month), interval 1 month)
+>>>>>>> d009ab0aae36c911fb8cd277bf018397fb72f3fd
             end as finance_month_date
         from base
     ),
 
     classified as (
+<<<<<<< HEAD
         select  
             *, 
             format_date('%B %Y', finance_month_date) as reporting_month,
@@ -80,12 +116,24 @@ with charges as (
     )
 
     select 
+=======
+        select
+            *,
+            format_date('%B %Y', finance_month_date) as reporting_month
+        from finance_months
+    )
+
+    select
+>>>>>>> d009ab0aae36c911fb8cd277bf018397fb72f3fd
         charge_id,
         subscription_id,
         customer_id,
         email,
         billing_interval,
+<<<<<<< HEAD
         ss_subscription_interval,
+=======
+>>>>>>> d009ab0aae36c911fb8cd277bf018397fb72f3fd
         charged_at,
         charge_currency,
         exchange_rate,
@@ -96,8 +144,16 @@ with charges as (
             then round(net_amount_usd / 12.0, 2)
         else net_amount_usd
         end as recognized_revenue_usd,
+<<<<<<< HEAD
         month_offset
     from classified 
     cross join unnest(generate_array(0,
         case when billing_interval = 'annual' then 11 else 0 end)) as month_offset
             
+=======
+        month_offset,
+        date_add(date(charged_at), interval month_offset month) as recognition_date
+    from classified
+    cross join unnest(generate_array(0,
+        case when billing_interval = 'annual' then 11 else 0 end)) as month_offset
+>>>>>>> d009ab0aae36c911fb8cd277bf018397fb72f3fd
