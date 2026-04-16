@@ -16,7 +16,12 @@ with source as (
         sub.first_payment_at         as first_payment_at,
         sub.subscription_expires_at  as subscription_expires_at,
         sub.unsubscribed_at          as unsubscribed_at,
-        sub.total_count              as total_count
+        sub.total_count              as total_count,
+        sub.user_email_address       as email,
+        sub.stripe_plan_name         as stripe_plan_name,
+        sub.paid_attribution         as paid_attribution,
+        sub.free_attribution         as free_attribution
+
     from {{ source('raw_landing', 'substack___subscribers_snapshot') }}
 )
 

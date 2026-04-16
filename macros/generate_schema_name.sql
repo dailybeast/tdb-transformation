@@ -3,7 +3,7 @@
     {% if custom_schema_name is none -%}
         {{ default__generate_schema_name(custom_schema_name, node) }}
     
-    {%- elif target.name == 'dev' -%}
+    {%- elif target.name == '' -%}
         tdb_transformation_dev
     
     {%- else -%}

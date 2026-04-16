@@ -1,0 +1,54 @@
+version: 2
+
+sources:
+  - name: stripe
+    database: ai-mvp-392019
+    schema: stripe
+    description: >
+      Currently all substack commerce is run through stripe. 
+      As we integrate stripe across more of the business the size of this source and staging
+      layer will grow.
+
+    tables:
+      - name: subscription_history
+        description: >
+          Source of truth for subscriptions — status, period dates, cancel flags
+
+      - name: charge
+        description: >
+          Individual payment events
+
+      - name: balance_transaction
+        description: >
+          Settled USD amounts (Stripe already converts foreign currency here)
+
+      - name: invoice
+        description: >
+          Links charges → subscriptions; period_start/period_end lets you infer monthly vs annual
+
+      - name: customer
+        description: >
+          Email address — the bridge to your Substack snapshot
+
+<<<<<<< HEAD
+=======
+      - name: refund
+        description: >
+          Succeeded refunds against charges. Joined to balance_transaction
+          to get the exact refunded net USD amount after FX conversion.
+
+      - name: subscription_item
+        description: >
+          Links subscriptions to plans. One row per item per subscription
+          (most Substack subs have one item). Snapshot table synced via _fivetran_synced.
+
+      - name: plan
+        description: >
+          Stripe plan dimension. interval field ('month' or 'year') is the
+          authoritative billing interval signal.
+
+>>>>>>> d009ab0aae36c911fb8cd277bf018397fb72f3fd
+
+
+
+     

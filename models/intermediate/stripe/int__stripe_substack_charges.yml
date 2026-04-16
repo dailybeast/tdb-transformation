@@ -1,0 +1,49 @@
+version: 2
+
+models:
+  - name: int__stripe_substack_charges
+    description: >
+      Subscriber-level Stripe charges with revenue recognition applied. Annual
+      subscriptions are spread across 12 rows (one per reporting month). Reporting
+      month follows the 16th-to-15th financial calendar. Includes all charges
+      with a linked invoice, including charges for churned subscribers.
+    columns:
+      - name: charge_id
+        description: Stripe charge ID.
+        tests:
+          - not_null
+      - name: subscription_id
+        description: Stripe subscription ID linked via invoice.
+      - name: customer_id
+        description: Stripe customer ID.
+      - name: email
+        description: Customer email from the Stripe customer table.
+      - name: billing_interval
+        description: Inferred billing cadence — annual or monthly.
+      - name: ss_subscription_interval
+        description: >
+          Subscription interval from the Substack subscriber export (monthly,
+          annual, lifetime). Sourced from the latest snapshot. Provided alongside
+          billing_interval for cross-system validation.
+      - name: charged_at
+        description: Timestamp of the original charge.
+      - name: charge_currency
+        description: Presentment currency of the charge.
+      - name: exchange_rate
+        description: FX rate applied to convert to USD. Null for USD charges.
+      - name: settled_amount_usd
+        description: Gross settled amount in USD from the balance transaction.
+      - name: net_amount_usd
+        description: Net amount in USD after Stripe fees.
+      - name: reporting_month
+        description: >
+          Financial reporting month this revenue row belongs to, formatted as
+          "Month YYYY". For annual subscriptions, one row per month across 12.
+      - name: recognized_revenue_usd
+        description: >
+          Revenue recognized in this reporting month. Monthly charges recognized
+          in full; annual charges spread as net_amount_usd / 12.
+      - name: month_offset
+        description: >
+          0 for monthly charges and the first month of annual charges.
+          1-11 for subsequent months of an annual subscription spread.

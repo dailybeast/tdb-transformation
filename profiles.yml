@@ -1,13 +1,13 @@
 tdb_transformation:
   target: dev
   outputs:
-
     dev:
       type: bigquery
-      method: service-account-json
+      method: service-account
       project: data-platform-455517
       dataset: tdb_transformation_dev
-      keyfile_json: "{{ env_var('GCP_SA') }}"
+      keyfile: "{{ env_var('GCP_SA') }}"
+      threads: 1
       location: US
       priority: interactive
       timeout_seconds: 300
@@ -15,10 +15,11 @@ tdb_transformation:
 
     prod:
       type: bigquery
-      method: service-account-json
+      method: service-account
       project: data-platform-455517
-      dataset: tdb_prd  # fallback only — model schemas are declared in dbt_project.yml
-      keyfile_json: "{{ env_var('GCP_SA') }}"
+      dataset: tdb_prd
+      keyfile: "{{ env_var('GCP_SA') }}"
+      threads: 1
       location: US
       priority: interactive
       timeout_seconds: 300

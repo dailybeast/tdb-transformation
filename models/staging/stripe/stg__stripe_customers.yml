@@ -1,0 +1,26 @@
+version: 2
+
+models:
+  - name: stg__stripe_customers
+    description: >
+      One row per Stripe customer. Email is the join key to Substack subscriber data.
+    columns:
+      - name: customer_id
+        data_type: string
+        tests:
+          - not_null
+          - unique
+
+      - name: email
+        data_type: string
+        description: Customer email. Used to reconcile against Substack subscriber snapshot.
+
+      - name: name
+        data_type: string
+
+      - name: customer_created_at
+        data_type: timestamp
+
+      - name: delinquent
+        data_type: boolean
+        description: True if the customer has a past-due balance.

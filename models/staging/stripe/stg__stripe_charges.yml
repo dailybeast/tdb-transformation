@@ -1,0 +1,64 @@
+version: 2
+
+models:
+  - name: stg__stripe_charges
+    description: >
+      Succeeded charges joined to their balance transactions. One row per succeeded charge.
+      settled_amount_usd and net_amount_usd are the authoritative USD figures — Stripe
+      converts foreign currency charges to the account settlement currency (USD) in the
+      balance transaction, so these are safe to use directly without additional conversion logic.
+    columns:
+      - name: charge_id
+        data_type: string
+        tests:
+          - not_null
+          - unique
+
+      - name: customer_id
+        data_type: string
+
+      - name: invoice_id
+        data_type: string
+        description: Populated for subscription charges. Null for standalone charges.
+
+      - name: balance_transaction_id
+        data_type: string
+
+      - name: charged_at
+        data_type: timestamp
+        tests:
+          - not_null
+
+      - name: charge_amount
+        data_type: float64
+        description: >
+          Original charge amount in charge_currency, divided by 100. Not reliable for
+          zero-decimal currencies (JPY, KRW, etc.) — use settled_amount_usd for financials.
+
+      - name: charge_currency
+        data_type: string
+        description: Original presentment currency (lowercased ISO code).
+
+      - name: receipt_email
+        data_type: string
+
+      - name: description
+        data_type: string
+
+      - name: settled_amount_usd
+        data_type: float64
+        description: >
+          Gross charge amount in USD as settled by Stripe, from balance_transaction.
+          Includes foreign currency conversion. Use this for all revenue calculations.
+
+      - name: stripe_fee_usd
+        data_type: float64
+        description: Stripe processing fee in USD.
+
+      - name: net_amount_usd
+        data_type: float64
+        description: settled_amount_usd minus stripe_fee_usd.
+
+      - name: exchange_rate
+        data_type: float64
+        description: Exchange rate applied by Stripe. Null for USD charges.

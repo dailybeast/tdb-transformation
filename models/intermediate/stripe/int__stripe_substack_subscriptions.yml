@@ -1,0 +1,37 @@
+version: 2
+
+models:
+  - name: int__stripe_substack_subscriptions
+    description: >
+      Active Stripe subscriptions enriched with customer email and billing interval.
+      One row per active subscription. Billing interval inferred from latest invoice
+      period length (>300 days = annual). Used as the Stripe join target for
+      subscriber-level models.
+    columns:
+      - name: subscription_id
+        description: Stripe subscription ID.
+        tests:
+          - unique
+          - not_null
+      - name: customer_id
+        description: Stripe customer ID.
+      - name: email
+        description: Customer email, joined from the Stripe customer table.
+      - name: status
+        description: Stripe subscription status (active, canceled, past_due, etc.).
+      - name: current_period_start
+        description: Start of the current billing period, sourced from latest invoice.
+      - name: current_period_end
+        description: End of the current billing period, sourced from latest invoice.
+      - name: cancel_at_period_end
+        description: Whether the subscription is set to cancel at period end.
+      - name: canceled_at
+        description: Timestamp when the subscription was cancelled, if applicable.
+      - name: ended_at
+        description: Timestamp when the subscription ended, if applicable.
+      - name: subscription_created_at
+        description: Timestamp when the Stripe subscription was created.
+      - name: billing_interval
+        description: Inferred billing cadence — annual (>300 day period) or monthly.
+      - name: last_invoice_amount_usd
+        description: USD amount from the most recent invoice for this subscription.

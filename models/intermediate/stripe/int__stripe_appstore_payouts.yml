@@ -1,0 +1,36 @@
+version: 2
+
+models:
+  - name: int__stripe_appstore_payouts
+    description: >
+      Apple App Store bulk subscription payouts received via Stripe. These are
+      publication-level lump-sum payouts from Apple and cannot be linked to
+      individual subscribers. Separated from subscriber charges for independent
+      accrual treatment. Reporting month is derived from the payout description
+      rather than the charge date.
+    columns:
+      - name: charge_id
+        description: Stripe charge ID.
+        tests:
+          - unique
+          - not_null
+      - name: charged_at
+        description: Timestamp when the payout was received in Stripe.
+      - name: description
+        description: >
+          Raw Stripe charge description
+          (e.g. "Earnings from App Store subscriptions for August 2025").
+      - name: settled_amount_usd
+        description: Gross payout amount in USD.
+      - name: net_amount_usd
+        description: Net payout after Stripe fees.
+      - name: charge_currency
+        description: Currency of the payout.
+      - name: payout_month_label
+        description: Month label parsed from description (e.g. "August 2025").
+      - name: reporting_month
+        description: Reporting month formatted as "Month YYYY", derived from payout_month_label.
+      - name: reporting_month_start
+        description: First day of the reporting period (16th of prior month).
+      - name: reporting_month_end
+        description: Last day of the reporting period (15th of reporting month).

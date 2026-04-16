@@ -22,11 +22,17 @@ models:
     staging:
       substack:
         +schema: substack
+      stripe:
+        +schema: stripe
 
     intermediate:
       substack:
         +schema: substack
+      stripe:
+        +schema: stripe
 
     mart:
       substack:
         +schema: substack
+      stripe:
+        +schema: stripe

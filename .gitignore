@@ -1,10 +1,13 @@
 # dbt
-tdb_transformation/target/
-tdb_transformation/dbt_packages/
-tdb_transformation/logs/
+target/
+dbt_packages/
+logs/
 
 # Python venv
 venv-tdb-transformation/
+
+# Credentials
+dev.json
 
 # General
 .DS_Store

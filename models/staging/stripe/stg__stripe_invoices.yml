@@ -1,0 +1,57 @@
+version: 2
+
+models:
+  - name: stg__stripe_invoices
+    description: >
+      One row per Stripe invoice. Bridges charges to subscriptions and provides
+      period_start / period_end used to infer billing interval (monthly vs annual)
+      in the intermediate layer.
+    columns:
+      - name: invoice_id
+        data_type: string
+        tests:
+          - not_null
+          - unique
+
+      - name: subscription_id
+        data_type: string
+        description: The subscription this invoice belongs to. Null for one-off invoices.
+
+      - name: customer_id
+        data_type: string
+        tests:
+          - not_null
+
+      - name: invoice_created_at
+        data_type: timestamp
+
+      - name: period_start
+        data_type: timestamp
+        description: Start of the billing period this invoice covers.
+
+      - name: period_end
+        data_type: timestamp
+        description: >
+          End of the billing period this invoice covers. DATE_DIFF(period_end, period_start, DAY)
+          > 300 days indicates an annual subscription.
+
+      - name: amount_paid_usd
+        data_type: float64
+        description: Amount paid on this invoice in USD (divided by 100 from Stripe cents).
+
+      - name: currency
+        data_type: string
+
+      - name: status
+        data_type: string
+<<<<<<< HEAD
+        description: Invoice status (paid, open, void, uncollectible).
+=======
+        description: Invoice status (paid, open, void, uncollectible).
+
+      - name: billing_reason
+        data_type: string
+        description: >
+          Reason this invoice was created. Key values: subscription_create (first charge
+          for a new subscription), subscription_cycle (renewal charge).
+>>>>>>> d009ab0aae36c911fb8cd277bf018397fb72f3fd
