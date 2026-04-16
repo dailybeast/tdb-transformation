@@ -42,53 +42,52 @@ stripe_subs as (
     ) = 1
 )
 
-    select
-    --substack spine
+select
+    -- substack spine
     ss.snapshot_date,
     ss.publication,
     ss.subscription_id,
     ss.user_id,
     ss.email,
     ss.subscription_interval,
-    ss.stripe_plan_name,
-    ss.paid_attribution,
-    ss.free_attribution,
+    ss.stripe_plan,
+    ss.paid_source,
+    ss.free_source,
     ss.is_subscribed,
     ss.is_comp,
     ss.is_gift,
     ss.is_free_trial,
-    ss.activity_rating,
-    ss.subscription_created_at,
-    ss.first_payment_at,
-    ss.subscription_expires_at,
-    ss.unsubscribed_at,
-    --stripe enrichment
+    ss.activity,
+    ss.start_date,
+    ss.first_paid_date,
+    ss.expiration_date,
+    ss.cancel_date,
+    -- stripe enrichment
     str.stripe_subscription_id,
     str.stripe_status,
     str.current_period_start,
     str.current_period_end,
     str.cancel_at_period_end,
     str.canceled_at,
-    --derived fields
+    -- derived
     coalesce(
         str.stripe_billing_interval,
         case
-            when lower(ss.stripe_plan_name) like '%year%'  then 'annual'
-            when lower(ss.stripe_plan_name) like '%month%' then 'monthly'
+            when lower(ss.stripe_plan) like '%year%'  then 'annual'
+            when lower(ss.stripe_plan) like '%month%' then 'monthly'
         end
     )                                   as billing_interval,
 
     safe_cast(
-        regexp_extract(ss.stripe_plan_name, r'\$(\d+(?:\.\d+)?)')
+        regexp_extract(ss.stripe_plan, r'\$(\d+(?:\.\d+)?)')
         as float64
     )                                   as imputed_price_usd,
 
     (
-        ss.first_payment_at is not null
+        ss.first_paid_date is not null
         and str.stripe_subscription_id is null
     )                                   as is_non_stripe_paid
 
-    from subscribers ss
-    left join stripe_subs str
-        on lower(trim(ss.email)) = lower(trim(str.email))
-group by all
+from subscribers ss
+left join stripe_subs str
+    on lower(trim(ss.email)) = lower(trim(str.email))
