@@ -2,19 +2,19 @@
 
 select
     snapshot_date,
-    publication,
+    snapshot_ts,
+    source_uri,
     email,
     name,
-    is_gift,
-    billing_interval,
-    is_comp,
-    subscription_interval,
-    start_date,
-    first_paid_date,
+    type,
+    stripe_plan,
     cancel_date,
+    start_date,
     expiration_date,
+    first_paid_date,
     imputed_price_usd                   as revenue,
-    type_bucket                         as type,
-    status_bucket                       as status,
-    is_active_paid
+    country,
+    paid_source,
+    free_source,
+    activity
 from {{ ref('fct__substack_subscriber_daily') }}

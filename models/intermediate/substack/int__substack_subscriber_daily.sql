@@ -45,12 +45,17 @@ stripe_subs as (
 select
     -- substack spine
     ss.snapshot_date,
+    ss.snapshot_ts,
+    ss.source_uri,
     ss.publication,
     ss.subscription_id,
     ss.user_id,
     ss.email,
+    ss.name,
+    ss.type,
     ss.subscription_interval,
     ss.stripe_plan,
+    ss.country,
     ss.paid_source,
     ss.free_source,
     ss.is_subscribed,
