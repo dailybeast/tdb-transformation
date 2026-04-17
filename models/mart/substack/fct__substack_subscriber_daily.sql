@@ -2,7 +2,7 @@
     materialized='incremental',
     partition_by={
         'field': 'snapshot_date',
-        'data_type': 'timestamp',
+        'data_type': 'date',
         'granularity': 'day'
     },
     incremental_strategy='insert_overwrite'
@@ -10,9 +10,9 @@
 
 with base as (
     select *
-    from {{ ref('int__substack_subscriber_daily' ) }}
+    from {{ ref('int__substack_subscriber_daily') }}
     {% if is_incremental() %}
-    where date(snapshot_date) >= date_sub(current_date(), interval 3 day)
+    where snapshot_date >= date_sub(current_date(), interval 3 day)
     {% endif %}
 ),
 
@@ -35,17 +35,17 @@ buckets as (
         case
             when is_gift then
                 case
-                    when subscription_expires_at > snapshot_date then 'Active'
+                    when expiration_date > snapshot_date then 'Active'
                     else 'Expired'
                 end
-            when first_payment_at is null and not coalesce(is_comp, false) then 'Non-paid'
-            when unsubscribed_at is not null then
+            when first_paid_date is null and not coalesce(is_comp, false) then 'Non-paid'
+            when cancel_date is not null then
                 case
-                    when subscription_expires_at > snapshot_date then 'Cancelled but Active'
+                    when expiration_date > snapshot_date then 'Cancelled but Active'
                     else 'Expired'
                 end
-            when subscription_expires_at is null         then 'Expired'
-            when subscription_expires_at > snapshot_date then 'Active'
+            when expiration_date is null         then 'Expired'
+            when expiration_date > snapshot_date then 'Active'
             else 'Expired'
         end as status_bucket
 
