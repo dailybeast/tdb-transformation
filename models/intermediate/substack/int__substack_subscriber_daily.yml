@@ -63,8 +63,9 @@ models:
         description: Timestamp when the Stripe subscription was cancelled.
       - name: billing_interval
         description: >
-          Resolved billing cadence (annual or monthly). Prefers Stripe invoice-derived
-          value; falls back to parsing stripe_plan_name for non-Stripe paid subscribers.
+          Resolved billing cadence (annual or monthly). Priority: (1) Stripe plans via
+          stg__stripe_plans, (2) Substack export subscription_interval, (3) stripe_plan
+          name text parsing as last resort.
       - name: imputed_price_usd
         description: >
           Dollar amount extracted from stripe_plan_name (e.g. 7.0 for "$7 a month").
@@ -74,3 +75,8 @@ models:
         description: >
           True when first_payment_at is populated but no Stripe subscription was
           matched. Indicates an iOS/Android app store subscriber.
+
+      - name: payer_type
+        description: >
+          Payment channel. Values: stripe (Stripe subscription matched), ios (Apple
+          App Store via paid_attribution), comp, gift, free.

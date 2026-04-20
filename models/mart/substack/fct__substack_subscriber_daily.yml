@@ -118,3 +118,9 @@ models:
         description: >
           True when status_bucket is Active or Cancelled but Active. Indicates a subscriber
           who has paid access at the time of the snapshot.
+
+      - name: payer_type
+        description: >
+          Payment channel for this subscriber. Values: stripe (direct Stripe billing),
+          ios (Apple App Store in-app purchase), comp (complimentary access),
+          gift (gifted subscription), free (no payment).

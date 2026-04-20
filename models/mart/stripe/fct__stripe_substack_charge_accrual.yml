@@ -72,6 +72,10 @@ models:
       - name: revenue_type
         description: Source of the revenue — subscriber (individual Stripe charge) or app_store (bulk Apple payout).
 
+      - name: payer_type
+        description: >
+          Payment channel — stripe for subscriber rows, ios for app_store rows.
+
       - name: reporting_month_start
         description: First day of the reporting period (16th of the prior month).
 
