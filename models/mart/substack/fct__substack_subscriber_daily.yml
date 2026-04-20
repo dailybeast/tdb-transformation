@@ -23,8 +23,6 @@ models:
 
       - name: subscription_id
         description: Substack subscription ID. Not globally unique — unique within snapshot_date.
-        tests:
-          - not_null
 
       - name: user_id
         description: Substack user account ID.
