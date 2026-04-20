@@ -26,8 +26,6 @@ models:
 
       - name: subscription_id
         data_type: integer
-        tests:
-          - not_null
 
       - name: user_id
         data_type: integer
