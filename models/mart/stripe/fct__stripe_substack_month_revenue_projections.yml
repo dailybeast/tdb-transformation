@@ -3,59 +3,108 @@ version: 2
 models:
   - name: fct__stripe_substack_month_revenue_projections
     description: >
-      One-month forward revenue projection for the next financial reporting period.
-      Combines three revenue streams: monthly Stripe subscriber renewals (scheduled
-      renewal window), annual Stripe subscriber ongoing recognition (all active annual
-      subs at 1/12 of annual fee), and App Store estimate (prior month payout carried
-      forward). Churn and new acquisition adjustments are applied to subscriber rows
-      using median counts from the last 3 completed reporting months.
-      All rows carry projection_type = 'projected'.
+      Revenue projection model for Substack subscriber revenue (monthly and annual billing
+      intervals). Does not include App Store rows. Produces two row types per billing interval:
+      closed rows for each completed reporting month (actuals + the projection that was
+      live at the time), and a single live row for the current in-progress period.
+
+      Projections use an EWMA of revenue deltas over the prior five completed months
+      (weights 16/8/4/2/1, most recent first), with an outlier cap: any single month's
+      delta exceeding 1.5x the trimmed average of the other four is replaced by that
+      trimmed average before being fed into the EWMA. Requires at least five months of
+      history; rows with fewer than five prior deltas are excluded.
 
     columns:
       - name: reporting_month
-        description: The reporting month being projected, formatted as "Month YYYY".
+        description: The reporting period label, formatted as "Month YYYY".
         tests:
           - not_null
 
-      - name: reporting_month_start
-        description: First day of the projected reporting period (16th of prior month).
+      - name: target_start
+        description: First day of the reporting period (16th of the prior calendar month).
 
-      - name: reporting_month_end
-        description: Last day of the projected reporting period (15th of reporting month).
-
-      - name: revenue_type
-        description: Source of revenue — subscriber or app_store.
-        tests:
-          - not_null
+      - name: target_end
+        description: Last day of the reporting period (15th of the reporting month).
 
       - name: billing_interval
-        description: >
-          Billing cadence — monthly or annual for subscriber rows. Null for app_store rows.
+        description: Billing cadence — monthly or annual.
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['monthly', 'annual']
 
-      - name: scheduled_revenue
+      - name: row_type
         description: >
-          Base projected revenue before churn/starts adjustments.
-          Monthly subscribers: sum of last_invoice_amount_usd for subs renewing in window.
-          Annual subscribers: sum of all active annual last_invoice_amount_usd / 12.
-          App Store: most recent monthly payout carried forward as estimate.
+          closed for completed reporting months where actuals are available.
+          live for the single current in-progress period.
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['closed', 'live']
 
-      - name: expected_churn_revenue
+      - name: pct_period_elapsed
         description: >
-          Revenue expected to be lost due to churn. Computed as median monthly churn
-          count (last 3 completed months) × avg recognized revenue per subscriber.
-          Null for app_store rows.
+          Percentage of the current period that has elapsed as of today.
+          Populated for live rows only; null for closed rows.
 
-      - name: expected_new_start_revenue
+      - name: recurring_revenue
         description: >
-          Revenue expected from new subscriber acquisitions. Computed as median monthly
-          new start count (last 3 completed months) × avg recognized revenue per subscriber.
-          Null for app_store rows.
+          Prior month's recognized revenue — the baseline from which the EWMA delta
+          is added to produce projected_revenue.
 
-      - name: projected_recognized_revenue
+      - name: recurring_subscribers
         description: >
-          Final projected recognized revenue for the reporting month.
-          Calculated as: scheduled_revenue - expected_churn_revenue + expected_new_start_revenue.
-          For app_store rows equals scheduled_revenue directly.
+          Subscriber count from the prior completed reporting month.
+          Populated for closed rows only; null for live rows.
 
-      - name: projection_type
-        description: Always 'projected'. Distinguishes this model's rows from actuals in fct__stripe_substack_month_accrual.
+      - name: starts
+        description: >
+          New subscription starts attributed to this period.
+          For closed rows: actual historical count.
+          For live rows: count to date within the current period.
+
+      - name: starts_prorated
+        description: >
+          Full-period estimate of new starts, prorated from pace to date
+          (starts_to_date / elapsed_days * total_days).
+          Populated for live rows only; null for closed rows.
+
+      - name: starts_revenue
+        description: >
+          Recognized revenue from new starts in this period.
+          Populated for closed rows only; null for live rows.
+
+      - name: churn
+        description: >
+          Cancelled subscriptions attributed to this period.
+          For closed rows: actual historical count.
+          For live rows: count to date within the current period.
+
+      - name: churn_prorated
+        description: >
+          Full-period estimate of churn, prorated from pace to date
+          (churn_to_date / elapsed_days * total_days).
+          Populated for live rows only; null for closed rows.
+
+      - name: churn_revenue
+        description: >
+          Recognized revenue lost to churn in this period.
+          Populated for closed rows only; null for live rows.
+
+      - name: actual_revenue
+        description: >
+          For closed rows: actual recognized revenue from fct__stripe_substack_month_accrual.
+          For live rows: revenue recognized to date in the current period from
+          fct__stripe_substack_charge_accrual.
+
+      - name: projected_revenue
+        description: >
+          Full-period revenue projection. Computed as recurring_revenue plus the
+          EWMA delta (with outlier cap) derived from the prior five months.
+
+      - name: pct_of_projection_achieved
+        description: >
+          For closed rows: (projected_revenue - actual_revenue) / actual_revenue * 100.
+          Positive means over-projected; negative means under-projected.
+          For live rows: actual_revenue / projected_revenue * 100 — how much of the
+          full-month projection has been recognized so far.
