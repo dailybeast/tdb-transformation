@@ -64,29 +64,39 @@ historical_starts as (
         count(distinct subscription_id)                   as start_count
     from {{ ref('int__stripe_substack_subscriptions') }}
     where subscription_created_at is not null
+        and (canceled_at is null or date(canceled_at) != date(subscription_created_at))
     group by 1, 2
 ),
 
 historical_churn as (
     select
         billing_interval,
-        format_date('%B %Y',
-            case
-                when extract(day from date(canceled_at)) >= 16
-                    then date_trunc(date(canceled_at), month)
-                else date_sub(date_trunc(date(canceled_at), month), interval 1 month)
-            end
-        )                                                 as reporting_month,
+        reporting_month,
         count(distinct subscription_id)                   as churn_count
-    from {{ ref('int__stripe_substack_subscriptions') }}
-    where canceled_at is not null
+    from (
+        select
+            s.subscription_id,
+            s.billing_interval,
+            ca.reporting_month
+        from {{ ref('int__stripe_substack_subscriptions') }} s
+        join {{ ref('fct__stripe_substack_charge_accrual') }} ca
+            on  ca.subscription_id = s.subscription_id
+            and ca.revenue_type = 'subscriber'
+            and ca.reporting_month_start <= date(s.canceled_at)
+        where s.canceled_at is not null
+            and date(s.canceled_at) != date(s.subscription_created_at)
+        qualify row_number() over (
+            partition by s.subscription_id
+            order by ca.reporting_month_end desc
+        ) = 1
+    )
     group by 1, 2
 ),
 
 starts_revenue as (
     select
         ca.billing_interval,
-        format_date('%B %Y', ca.reporting_month_start)    as reporting_month,
+        ca.reporting_month                                 as reporting_month,
         round(sum(ca.recognized_revenue_usd), 2)          as starts_revenue
     from {{ ref('fct__stripe_substack_charge_accrual') }} ca
     join {{ ref('int__stripe_substack_subscriptions') }} s
@@ -101,27 +111,35 @@ starts_revenue as (
         )
     where ca.revenue_type = 'subscriber'
         and s.subscription_created_at is not null
+        and (s.canceled_at is null or date(s.canceled_at) != date(s.subscription_created_at))
     group by 1, 2
+),
+
+churned_sub_last_accrual as (
+    select
+        s.subscription_id,
+        s.billing_interval,
+        ca.reporting_month                                as last_charge_reporting_month,
+        ca.recognized_revenue_usd
+    from {{ ref('int__stripe_substack_subscriptions') }} s
+    join {{ ref('fct__stripe_substack_charge_accrual') }} ca
+        on  ca.subscription_id = s.subscription_id
+        and ca.revenue_type = 'subscriber'
+        and ca.reporting_month_start <= date(s.canceled_at)
+    where s.canceled_at is not null
+        and date(s.canceled_at) != date(s.subscription_created_at)
+    qualify row_number() over (
+        partition by s.subscription_id
+        order by ca.reporting_month_end desc
+    ) = 1
 ),
 
 churn_revenue as (
     select
-        ca.billing_interval,
-        format_date('%B %Y', ca.reporting_month_start)    as reporting_month,
-        round(sum(ca.recognized_revenue_usd), 2)          as churn_revenue
-    from {{ ref('fct__stripe_substack_charge_accrual') }} ca
-    join {{ ref('int__stripe_substack_subscriptions') }} s
-        on  s.subscription_id = ca.subscription_id
-        and ca.reporting_month_start = date_add(
-            case
-                when extract(day from date(s.canceled_at)) >= 16
-                    then date_trunc(date(s.canceled_at), month)
-                else date_sub(date_trunc(date(s.canceled_at), month), interval 1 month)
-            end,
-            interval 15 day
-        )
-    where ca.revenue_type = 'subscriber'
-        and s.canceled_at is not null
+        billing_interval,
+        last_charge_reporting_month                       as reporting_month,
+        round(sum(recognized_revenue_usd), 2)             as churn_revenue
+    from churned_sub_last_accrual
     group by 1, 2
 ),
 
@@ -199,7 +217,7 @@ revenue_ewma as (
         round(
             (
                 16 * case when d1 > 1.5 * ((d1+d2+d3+d4+d5 - greatest(d1,d2,d3,d4,d5) - least(d1,d2,d3,d4,d5)) / 3.0)
-                        then (d1+d2+d3+d4+d5 - greatest(d1,d2,d3+d4+d5) - least(d1,d2,d3,d4,d5)) / 3.0
+                        then (d1+d2+d3+d4+d5 - greatest(d1,d2,d3,d4,d5) - least(d1,d2,d3,d4,d5)) / 3.0
                         else d1 end +
                  8 * case when d2 > 1.5 * ((d1+d2+d3+d4+d5 - greatest(d1,d2,d3,d4,d5) - least(d1,d2,d3,d4,d5)) / 3.0)
                         then (d1+d2+d3+d4+d5 - greatest(d1,d2,d3,d4,d5) - least(d1,d2,d3,d4,d5)) / 3.0
@@ -245,6 +263,7 @@ live_starts as (
     cross join reporting_window rw
     where date(subscription_created_at)
         between rw.period_start and current_date()
+        and (canceled_at is null or date(canceled_at) != date(subscription_created_at))
     group by 1
 ),
 
@@ -256,6 +275,7 @@ live_churn as (
     cross join reporting_window rw
     where date(canceled_at)
         between rw.period_start and current_date()
+        and date(canceled_at) != date(subscription_created_at)
     group by 1
 ),
 
@@ -281,7 +301,7 @@ select
     end                                                   as pct_period_elapsed,
     round(re.prior_revenue, 2)                            as recurring_revenue,
     case when re.row_type = 'closed'
-        then a.subscriber_count
+        then a.subscriber_count - hs.start_count
     end                                                   as recurring_subscribers,
     case
         when re.row_type = 'closed' then hs.start_count

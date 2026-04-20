@@ -43,6 +43,23 @@ invoices as (
         on c.invoice_id = i.invoice_id
     where i.subscription_id is not null
     qualify row_number() over (partition by i.subscription_id order by i.invoice_created_at desc) = 1
+),
+
+subscription_plans as (
+    select
+        si.subscription_id,
+        case p.billing_interval
+            when 'year'  then 'annual'
+            when 'month' then 'monthly'
+            else 'monthly'
+        end as billing_interval
+    from {{ ref('stg__stripe_subscription_items') }} si
+    join {{ ref('stg__stripe_plans') }} p
+        on p.plan_id = si.plan_id
+    qualify row_number() over (
+        partition by si.subscription_id
+        order by si.created desc
+    ) = 1
 )
 
     select
@@ -56,13 +73,12 @@ invoices as (
         s.canceled_at,
         s.ended_at,
         s.subscription_created_at,
-        case
-            when i.period_days > 300     then 'annual'
-            when i.amount_paid_usd >= 50 then 'annual'
-        else 'monthly' end as billing_interval,
+        coalesce(sp.billing_interval, 'monthly') as billing_interval,
         i.amount_paid_usd as last_invoice_amount_usd
     from subscriptions s
     left join customers c
         on s.customer_id = c.customer_id
     left join invoices i
         on i.subscription_id = s.subscription_id
+    left join subscription_plans sp
+        on sp.subscription_id = s.subscription_id
