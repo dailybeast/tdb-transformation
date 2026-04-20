@@ -23,17 +23,17 @@ buckets as (
         case
             when is_gift then
                 case
-                    when expiration_date > snapshot_date then 'Active'
+                    when cast(expiration_date as datetime) > snapshot_date then 'Active'
                     else 'Expired'
                 end
             when first_paid_date is null and not coalesce(is_comp, false) then 'Non-paid'
             when cancel_date is not null then
                 case
-                    when expiration_date > snapshot_date then 'Cancelled but Active'
+                    when cast(expiration_date as datetime) > snapshot_date then 'Cancelled but Active'
                     else 'Expired'
                 end
             when expiration_date is null         then 'Expired'
-            when expiration_date > snapshot_date then 'Active'
+            when cast(expiration_date as datetime) > snapshot_date then 'Active'
             else 'Expired'
         end as status_bucket
 
