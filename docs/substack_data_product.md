@@ -420,6 +420,16 @@ A single anomalous month, say, a promotional spike that brought in an unusual nu
 
 This means one unusual month cannot single-handedly throw off the projection. Because of this cap when investigating why a projection looks lower than expected after a strong month.
 
+#### How each row is structured: recurring, starts, and churn
+
+Each row decomposes the period's activity into three buckets:
+
+* **Recurring** (`recurring_revenue`, `recurring_subscribers`) — the prior period's active subscriber base and its revenue. This is the pool you start with. It represents "what we'd collect again if nothing changed." Churn is drawn exclusively from this pool — a subscriber cannot churn if they weren't already in the recurring base.
+* **Starts** (`starts`, `starts_revenue`) — net new subscriptions that had no active subscription in the prior period. These are additive on top of the recurring base.
+* **Churn** (`churn`, `churn_revenue`) — cancellations from within the recurring base during this period. Always a subset of `recurring_subscribers`, never an independent pool.
+
+The relationship: `actual_revenue ≈ recurring_revenue + starts_revenue − churn_revenue`. The EWMA projection doesn't model these buckets separately — it projects the net trend forward — but the buckets are included so you can diagnose *why* revenue moved.
+
 #### Reading the live row
 
 When looking at the current in-progress month:
@@ -429,8 +439,8 @@ When looking at the current in-progress month:
 | `actual_revenue` | Revenue recognized so far in this period (charges that have already processed) |
 | `projected_revenue` | Full-month estimate based on EWMA of past trends |
 | `pct_of_projection_achieved` | What % of the projection you've recognized so far |
-| `starts_prorated` | Estimated full-month new subscriber count based on pace to date |
-| `churn_prorated` | Estimated full-month churn count based on pace to date |
+| `starts_prorated` | Estimated full-month new subscriber count, extrapolated from pace to date |
+| `churn_prorated` | Estimated full-month churn count, extrapolated from pace to date — subset of the prior period's recurring base |
 
 #### Known limitations
 

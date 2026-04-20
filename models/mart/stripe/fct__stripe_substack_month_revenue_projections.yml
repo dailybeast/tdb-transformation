@@ -49,18 +49,22 @@ models:
 
       - name: recurring_revenue
         description: >
-          Prior month's recognized revenue — the baseline from which the EWMA delta
-          is added to produce projected_revenue.
+          Recognized revenue from the prior completed reporting month. Represents the
+          revenue base carried into this period — i.e. what we would expect to collect
+          again if no subscribers started or churned. Used as the baseline for the EWMA
+          projection: projected_revenue = recurring_revenue + ewma_delta.
 
       - name: recurring_subscribers
         description: >
-          Subscriber count from the prior completed reporting month.
-          Populated for closed rows only; null for live rows.
+          Subscriber count from the prior completed reporting month. This is the pool
+          from which churn is drawn — a subscriber can only churn if they were part of
+          this recurring base. Populated for closed rows only; null for live rows.
 
       - name: starts
         description: >
-          New subscription starts attributed to this period.
-          For closed rows: actual historical count.
+          New subscription starts in this period — subscribers who had no active
+          subscription in the prior period. These are additive to the recurring base.
+          For closed rows: actual historical count from int__stripe_substack_subscriptions.
           For live rows: count to date within the current period.
 
       - name: starts_prorated
@@ -71,14 +75,17 @@ models:
 
       - name: starts_revenue
         description: >
-          Recognized revenue from new starts in this period.
+          Recognized revenue attributable to new starts in this period — the charge
+          rows whose subscription_created_at falls within this reporting month.
           Populated for closed rows only; null for live rows.
 
       - name: churn
         description: >
-          Cancelled subscriptions attributed to this period.
-          For closed rows: actual historical count.
-          For live rows: count to date within the current period.
+          Cancellations in this period. Churn is a subset of the recurring base —
+          these are subscribers counted in recurring_subscribers who cancelled during
+          this period. A subscriber cannot churn if they were not already in the
+          recurring base. For closed rows: actual historical count. For live rows:
+          count to date within the current period.
 
       - name: churn_prorated
         description: >
@@ -88,7 +95,8 @@ models:
 
       - name: churn_revenue
         description: >
-          Recognized revenue lost to churn in this period.
+          Recognized revenue lost to churn in this period — the charge rows whose
+          subscription canceled_at falls within this reporting month.
           Populated for closed rows only; null for live rows.
 
       - name: actual_revenue
