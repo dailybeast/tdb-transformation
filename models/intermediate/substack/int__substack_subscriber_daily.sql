@@ -5,55 +5,20 @@ with subscribers as (
     from {{ ref('stg__substack_subscribers') }}
 ),
 
-stripe_invoices as (
-    select
-        subscription_id,
-        period_start,
-        period_end
-    from {{ ref('stg__stripe_invoices') }}
-    where subscription_id is not null
-    qualify row_number() over (
-        partition by subscription_id order by invoice_created_at desc
-    ) = 1
-),
-
-subscription_plans as (
-    select
-        si.subscription_id,
-        case p.billing_interval
-            when 'year'  then 'annual'
-            when 'month' then 'monthly'
-            else 'monthly'
-        end as billing_interval
-    from {{ ref('stg__stripe_subscription_items') }} si
-    join {{ ref('stg__stripe_plans') }} p
-        on p.plan_id = si.plan_id
-    qualify row_number() over (
-        partition by si.subscription_id
-        order by si.created desc
-    ) = 1
-),
-
 stripe_subs as (
     select
-        s.subscription_id               as stripe_subscription_id,
-        c.email,
-        sp.billing_interval             as stripe_billing_interval,
-        s.status                        as stripe_status,
-        i.period_start                  as current_period_start,
-        i.period_end                    as current_period_end,
-        s.cancel_at_period_end,
-        s.canceled_at
-    from {{ ref('stg__stripe_subscriptions') }} s
-    left join {{ ref('stg__stripe_customers') }} c
-        on s.customer_id = c.customer_id
-    left join stripe_invoices i
-        on i.subscription_id = s.subscription_id
-    left join subscription_plans sp
-        on sp.subscription_id = s.subscription_id
+        subscription_id                 as stripe_subscription_id,
+        email,
+        billing_interval                as stripe_billing_interval,
+        status                          as stripe_status,
+        current_period_start,
+        current_period_end,
+        cancel_at_period_end,
+        canceled_at
+    from {{ ref('int__stripe_substack_subscriptions') }}
     qualify row_number() over (
-        partition by lower(trim(c.email))
-        order by s._fivetran_start desc
+        partition by lower(trim(email))
+        order by subscription_created_at desc
     ) = 1
 )
 
