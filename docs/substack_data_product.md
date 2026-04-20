@@ -64,61 +64,7 @@ All revenue models — accrual, spreading, and projections — use this calendar
 
 ## Domain 1: Subscriber Analytics
 
-### What questions does this answer?
-
-* How many paid subscribers does each publication have right now?
-* Is a given subscriber on a monthly or annual plan?
-* Are they active, cancelled-but-within-their-paid-window, or fully lapsed?
-* How many subscribers came through iOS/Android vs. direct Stripe billing?
-* What is our free vs. paid breakdown per publication?
-
-### The core model: `fct__substack_subscriber_daily`
-
-This is a **daily snapshot** table — one row per subscriber, per day. Every time the Substack export is refreshed, a new day's worth of rows is added. This lets you track how the subscriber base changes over time, not just what it looks like today.
-
-The model combines two sources:
-
-* **Substack** provides subscription identity: when someone subscribed, what tier they're on, whether they're a gift or comp, and Substack's own engagement score.
-* **Stripe** provides billing context: the actual subscription status in Stripe, whether renewal is active, and whether the subscriber is set to cancel at period end.
-
-The join between the two systems happens on **email address** (lowercased and trimmed for consistency).
-
-#### The `payer_type` field
-
-Identifies how a subscriber's access is funded. This is the primary field for segmenting paid subscribers by payment channel.
-
-| `payer_type` | Meaning |
-|-------------|---------|
-| `stripe`    | Paid directly via Stripe (web or card billing) |
-| `ios`       | Paid via Apple App Store in-app purchase (`paid_attribution = 'substack-ios-in-app-purchase'`) |
-| `comp`      | Complimentary access — no payment |
-| `gift`      | Gifted subscription |
-| `free`      | Free subscriber with no payment |
-
-`payer_type` is also present on `fct__stripe_substack_charge_accrual`, where `subscriber` rows carry `stripe` and `app_store` rows carry `ios`.
-
-#### The `billing_interval` field
-
-Resolved in priority order: (1) Stripe plans via `stg__stripe_plans` — most reliable; (2) Substack export `subscription_interval` — covers subscribers not matched to a Stripe plan; (3) `stripe_plan` name text parsing — last resort.
-
-#### The `status_bucket` field
-
-Subscription status is more nuanced than active/inactive. A subscriber who cancels mid-year is still entitled to their remaining paid period. `status_bucket` captures this:
-
-| `status_bucket` | Meaning |
-|---------------|---------|
-| `Active`      | Subscription is current and paid |
-| `Cancelled but Active` | Subscriber cancelled, but their paid period has not yet expired |
-| `Expired`     | Subscription has lapsed — either cancelled past the end date, or the period ran out |
-| `Non-paid`    | Free subscriber with no payment history |
-
-#### The `is_active_paid` + `is_comp` flags
-
-This is the single most useful boolean for "is this person a current paying customer?" It is `true` for both `Active` and `Cancelled but Active` because both of those subscribers have paid for access they are currently entitled to use. To exclude comp subscriptions (legacy, currently non-revenue generating) for a true "Who is paying right now" add the boolean flag `is_comp = false`.
-
-### Current analytics handoff
-
-Downstream analytics workflows (dashboards, scripts) currently read from per-publication snapshot tables in `ai-mvp-392019.substack` — e.g. `joannacoles_daily_snapshot`, `royalist_daily_snapshot`. The handoff point to the new transformation layer is `stg__substack_subscribers`, which consolidates all publications into a single table.
+Downstream analytics workflows currently read from per-publication snapshot tables in `ai-mvp-392019.substack` — e.g. `joannacoles_daily_snapshot`, `royalist_daily_snapshot`. The handoff point to the new transformation layer is `stg__substack_subscribers`, which consolidates all publications into a single table.
 
 To migrate a workflow, replace the base CTE:
 
@@ -138,9 +84,6 @@ WITH max_day AS (
 ```
 
 `fct__substack_subscriber_daily` query patterns will be documented here once downstream workflows are migrated.
-
-
-
 ---
 
 ## Domain 2: Revenue
