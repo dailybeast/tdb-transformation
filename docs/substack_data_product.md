@@ -116,100 +116,28 @@ Subscription status is more nuanced than active/inactive. A subscriber who cance
 
 This is the single most useful boolean for "is this person a current paying customer?" It is `true` for both `Active` and `Cancelled but Active` because both of those subscribers have paid for access they are currently entitled to use. To exclude comp subscriptions (legacy, currently non-revenue generating) for a true "Who is paying right now" add the boolean flag `is_comp = false`.
 
-### How to Query: Subscriber Analytics
+### Current analytics handoff
 
-**Current active paid subscribers by publication and payer type**
+Downstream analytics workflows (dashboards, scripts) currently read from per-publication snapshot tables in `ai-mvp-392019.substack` — e.g. `joannacoles_daily_snapshot`, `royalist_daily_snapshot`. The handoff point to the new transformation layer is `stg__substack_subscribers`, which consolidates all publications into a single table.
 
-The most common query, a snapshot of today's paying subscriber base, broken down by publication and `payer_type`. Always filter to the most recent `snapshot_date` to avoid double-counting across historical snapshot rows.
-
-```sql
-SELECT
-    publication,
-    payer_type,
-    billing_interval,
-    COUNT(*) AS subscriber_count
-FROM `data-platform-455517.substack.fct__substack_subscriber_daily`
-WHERE
-    snapshot_date = (SELECT MAX(snapshot_date) FROM `data-platform-455517.substack.fct__substack_subscriber_daily`)
-    AND is_active_paid = TRUE
-    AND is_comp = FALSE
-GROUP BY 1, 2, 3
-```
-
-**Weekly active paid subscriber trend for a single publication**
-
-Useful for tracking growth or churn momentum. Uses one snapshot per week (the Monday of each week) to reduce row volume.
+To migrate a workflow, replace the base CTE:
 
 ```sql
-SELECT
-    DATE_TRUNC(snapshot_date, WEEK(MONDAY)) AS week_start,
-    COUNT(*) AS active_paid_subscribers
-FROM `data-platform-455517.substack.fct__substack_subscriber_daily`
-WHERE
-    publication = 'royalist'
-    AND is_active_paid = TRUE
-    AND is_comp = FALSE
-    AND EXTRACT(DAYOFWEEK FROM snapshot_date) = 2  -- Monday only
-GROUP BY 1
-ORDER BY 1
-```
-
-**Free vs. paid breakdown on the latest snapshot**
-
-```sql
-SELECT
-    publication,
-    CASE
-        WHEN is_active_paid THEN 'Paid'
-        WHEN status_bucket = 'Non-paid' THEN 'Free'
-        ELSE 'Lapsed / Other'
-    END AS subscriber_class,
-    COUNT(*) AS subscriber_count
-FROM `data-platform-455517.substack.fct__substack_subscriber_daily`
-WHERE snapshot_date = (SELECT MAX(snapshot_date) FROM `fct__substack_subscriber_daily`)
-GROUP BY 1, 2
-ORDER BY publication, subscriber_count DESC
-```
-
-**Look up a specific subscriber's current status**
-
-```sql
-SELECT
-    snapshot_date,
-    publication,
-    email,
-    payer_type,
-    status_bucket,
-    billing_interval,
-    is_active_paid,
-    is_non_stripe_paid,
-    expiration_date
-FROM `data-platform-455517.substack.fct__substack_subscriber_daily`
-WHERE
-    LOWER(email) = 'subscriber@example.com'
-ORDER BY snapshot_date DESC
-LIMIT 1
-```
-
-
----
-
-### Subscriber Snapshot Handoff to Analytics: `ai-mvp-392019.substack.fct__substack_royalist_compat`
-
-Subscriber snapshot marts for each publication currently live in `ai-mvp-392019.substack.<publication>_subscribers`) that downstream consumers (dashboards, scripts, etc) are built against. In order to keep current analytics workflows intact we created a wrapper that maps currently referenced columns to our new underlying snapshot tables. This allows for existing SQL pipelines to remain while we just swap out the base table used in the first CTE. 
-
-```sql
---CURRENT BASE CTE FOR SUBSCRIBER SNAPSHOT
+-- current
 WITH max_day AS (
   SELECT MAX(snapshot_date) AS last_day
-  FROM `ai-mvp-392019.substack.royalist_daily_snapshot`
+  FROM `ai-mvp-392019.substack.joannacoles_daily_snapshot`
 ),
---HANDOFF USING NEW TRANSFORMATION LAYER
+
+-- after handoff
 WITH max_day AS (
-  SELECT MAX(date(snapshot_date)) AS last_day
-  FROM `data-platform-455517.substack.fct__substack_royalist_compat`
+  SELECT MAX(snapshot_date) AS last_day
+  FROM `data-platform-455517.substack.stg__substack_subscribers`
+  WHERE publication = 'joannacoles'
 ),
 ```
+
+`fct__substack_subscriber_daily` query patterns will be documented here once downstream workflows are migrated.
 
 
 
