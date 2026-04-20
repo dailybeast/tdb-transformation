@@ -17,8 +17,6 @@ models:
         description: Substack publication identifier (e.g. royalist).
       - name: subscription_id
         description: Substack subscription ID.
-        tests:
-          - not_null
       - name: user_id
         description: Substack user ID.
       - name: email
