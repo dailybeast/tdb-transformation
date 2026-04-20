@@ -12,7 +12,7 @@ models:
       All rows carry projection_type = 'projected'.
 
     columns:
-      - name: projected_reporting_month
+      - name: reporting_month
         description: The reporting month being projected, formatted as "Month YYYY".
         tests:
           - not_null
