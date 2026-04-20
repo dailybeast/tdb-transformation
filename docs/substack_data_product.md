@@ -83,20 +83,23 @@ The model combines two sources:
 
 The join between the two systems happens on **email address** (lowercased and trimmed for consistency).
 
-#### The `type_bucket` field
+#### The `payer_type` field
 
-Because Substack has several overlapping subscription concepts — gifted subscriptions, complimentary access, lifetime "Royal Tier" memberships, monthly and annual paid plans — we consolidate them into a single `type_bucket` field for ease of querying:
+Identifies how a subscriber's access is funded. This is the primary field for segmenting paid subscribers by payment channel.
 
-**only in scope for royalist subscribers. all other publications have a hardcoded value of "Not included in type definition yet"**
-
-| `type_bucket` | Meaning |
+| `payer_type` | Meaning |
 |-------------|---------|
-| `Monthly Subscriber` | Paying on a monthly billing cycle |
-| `Yearly Subscriber` | Paying on an annual billing cycle |
-| `Royal Tier` | Lifetime membership |
-| `Monthly Gift` | Gifted subscription, monthly |
-| `Yearly Gift` | Gifted subscription, annual |
-| `Comp`      | Complimentary access (no payment) |
+| `stripe`    | Paid directly via Stripe (web or card billing) |
+| `ios`       | Paid via Apple App Store in-app purchase (`paid_attribution = 'substack-ios-in-app-purchase'`) |
+| `comp`      | Complimentary access — no payment |
+| `gift`      | Gifted subscription |
+| `free`      | Free subscriber with no payment |
+
+`payer_type` is also present on `fct__stripe_substack_charge_accrual`, where `subscriber` rows carry `stripe` and `app_store` rows carry `ios`.
+
+#### The `billing_interval` field
+
+Resolved in priority order: (1) Stripe plans via `stg__stripe_plans` — most reliable; (2) Substack export `subscription_interval` — covers subscribers not matched to a Stripe plan; (3) `stripe_plan` name text parsing — last resort.
 
 #### The `status_bucket` field
 
@@ -115,21 +118,21 @@ This is the single most useful boolean for "is this person a current paying cust
 
 ### How to Query: Subscriber Analytics
 
-**Current active paid subscribers by publication and tier**
+**Current active paid subscribers by publication and payer type**
 
-The most common query, a snapshot of today's paying subscriber base, broken down by publication and `type_bucket`. Always filter to the most recent `snapshot_date` to avoid double-counting across historical snapshot rows.
+The most common query, a snapshot of today's paying subscriber base, broken down by publication and `payer_type`. Always filter to the most recent `snapshot_date` to avoid double-counting across historical snapshot rows.
 
 ```sql
 SELECT
     publication,
-    type_bucket,
+    payer_type,
     billing_interval,
     COUNT(*) AS subscriber_count
 FROM `data-platform-455517.substack.fct__substack_subscriber_daily`
 WHERE
     snapshot_date = (SELECT MAX(snapshot_date) FROM `data-platform-455517.substack.fct__substack_subscriber_daily`)
     AND is_active_paid = TRUE
-    and paid_attribution <> 'comp'
+    AND is_comp = FALSE
 GROUP BY 1, 2, 3
 ```
 
@@ -145,7 +148,7 @@ FROM `data-platform-455517.substack.fct__substack_subscriber_daily`
 WHERE
     publication = 'royalist'
     AND is_active_paid = TRUE
-    and paid_attribution <> 'comp'
+    AND is_comp = FALSE
     AND EXTRACT(DAYOFWEEK FROM snapshot_date) = 2  -- Monday only
 GROUP BY 1
 ORDER BY 1
@@ -175,12 +178,12 @@ SELECT
     snapshot_date,
     publication,
     email,
-    type_bucket,
+    payer_type,
     status_bucket,
     billing_interval,
     is_active_paid,
     is_non_stripe_paid,
-    subscription_expires_at
+    expiration_date
 FROM `data-platform-455517.substack.fct__substack_subscriber_daily`
 WHERE
     LOWER(email) = 'subscriber@example.com'

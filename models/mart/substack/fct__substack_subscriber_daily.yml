@@ -5,7 +5,7 @@ models:
     description: >
       Daily subscriber grain fact table — one row per subscriber per snapshot date.
       Combines Substack subscription identity and status with Stripe billing context.
-      Adds computed type_bucket and status_bucket fields for analytics use.
+      Adds computed status_bucket and is_active_paid fields for analytics use.
       Materialized as an incremental table partitioned by snapshot_date.
       Feeds fct__substack_subscriber_compat for backwards-compatible analytics handoff,
       and the Stripe accrual marts for revenue reporting.
@@ -109,11 +109,6 @@ models:
           Indicates an iOS or Android app store subscriber.
 
       # --- Computed Buckets ---
-      - name: type_bucket
-        description: >
-          Subscriber type classification. Values: Monthly Subscriber, Yearly Subscriber,
-          Monthly Gift, Yearly Gift, Royal Tier, Comp, Other.
-
       - name: status_bucket
         description: >
           Subscription status as of snapshot_date. Values: Active, Cancelled but Active,

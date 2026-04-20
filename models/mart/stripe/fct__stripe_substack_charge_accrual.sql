@@ -51,6 +51,10 @@ combined as (
 
 select
     *,
+    case revenue_type
+        when 'app_store'  then 'ios'
+        when 'subscriber' then 'stripe'
+    end                             as payer_type,
     date_add(
         date_trunc(parse_date('%B %Y', reporting_month), month),
         interval 15 day

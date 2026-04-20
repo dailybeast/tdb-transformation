@@ -21,18 +21,6 @@ buckets as (
         *,
 
         case
-            when is_gift and billing_interval = 'monthly'  then 'Monthly Gift'
-            when is_gift and billing_interval = 'annual'   then 'Yearly Gift'
-            when subscription_interval = 'lifetime'        then 'Royal Tier'
-            when is_comp and billing_interval = 'annual'   then 'Yearly Subscriber'
-            when is_comp and billing_interval = 'monthly'  then 'Monthly Subscriber'
-            when is_comp                                   then 'Comp'
-            when billing_interval = 'annual'               then 'Yearly Subscriber'
-            when billing_interval = 'monthly'              then 'Monthly Subscriber'
-            else 'Other'
-        end as type_bucket,
-
-        case
             when is_gift then
                 case
                     when expiration_date > snapshot_date then 'Active'

@@ -9,8 +9,7 @@ stripe_invoices as (
     select
         subscription_id,
         period_start,
-        period_end,
-        date_diff(date(period_end), date(period_start), day) as period_days
+        period_end
     from {{ ref('stg__stripe_invoices') }}
     where subscription_id is not null
     qualify row_number() over (
@@ -18,14 +17,28 @@ stripe_invoices as (
     ) = 1
 ),
 
+subscription_plans as (
+    select
+        si.subscription_id,
+        case p.billing_interval
+            when 'year'  then 'annual'
+            when 'month' then 'monthly'
+            else 'monthly'
+        end as billing_interval
+    from {{ ref('stg__stripe_subscription_items') }} si
+    join {{ ref('stg__stripe_plans') }} p
+        on p.plan_id = si.plan_id
+    qualify row_number() over (
+        partition by si.subscription_id
+        order by si.created desc
+    ) = 1
+),
+
 stripe_subs as (
     select
         s.subscription_id               as stripe_subscription_id,
         c.email,
-        case
-            when i.period_days > 300 then 'annual'
-            else 'monthly'
-        end                             as stripe_billing_interval,
+        sp.billing_interval             as stripe_billing_interval,
         s.status                        as stripe_status,
         i.period_start                  as current_period_start,
         i.period_end                    as current_period_end,
@@ -36,6 +49,8 @@ stripe_subs as (
         on s.customer_id = c.customer_id
     left join stripe_invoices i
         on i.subscription_id = s.subscription_id
+    left join subscription_plans sp
+        on sp.subscription_id = s.subscription_id
     qualify row_number() over (
         partition by lower(trim(c.email))
         order by s._fivetran_start desc
@@ -77,6 +92,10 @@ select
     -- derived
     coalesce(
         str.stripe_billing_interval,
+        case ss.subscription_interval
+            when 'annual'  then 'annual'
+            when 'monthly' then 'monthly'
+        end,
         case
             when lower(ss.stripe_plan) like '%year%'  then 'annual'
             when lower(ss.stripe_plan) like '%month%' then 'monthly'
@@ -91,7 +110,15 @@ select
     (
         ss.first_paid_date is not null
         and str.stripe_subscription_id is null
-    )                                   as is_non_stripe_paid
+    )                                   as is_non_stripe_paid,
+
+    case
+        when ss.paid_source = 'substack-ios-in-app-purchase' then 'ios'
+        when ss.is_comp                                      then 'comp'
+        when ss.is_gift                                      then 'gift'
+        when str.stripe_subscription_id is not null          then 'stripe'
+        else                                                      'free'
+    end                                                      as payer_type
 
 from subscribers ss
 left join stripe_subs str
