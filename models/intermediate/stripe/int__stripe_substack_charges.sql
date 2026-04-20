@@ -27,7 +27,8 @@ with charges as (
             subscription_id,
             customer_id,
             email,
-            status
+            status,
+            billing_interval
         from {{ ref('int__stripe_substack_subscriptions') }}
     ),
 
@@ -42,12 +43,7 @@ with charges as (
             inv.subscription_id,
             sub.customer_id,
             sub.email,
-            case
-                when stack_subs.ss_subscription_interval = 'annual'  then 'annual'
-                when stack_subs.ss_subscription_interval = 'monthly' then 'monthly'
-                when ch.settled_amount_usd >= 50                     then 'annual'
-                else 'monthly'
-            end  as billing_interval,
+            sub.billing_interval,
             stack_subs.ss_subscription_interval,
             sub.status
         from charges ch
@@ -63,8 +59,8 @@ with charges as (
         select
             *,
             case when extract(day from date(charged_at)) >= 16
-                then date_trunc(date_add(date(charged_at), interval 1 month), month)
-                else date_trunc(date(charged_at), month)
+                then date_trunc(date(charged_at), month)
+                else date_sub(date_trunc(date(charged_at), month), interval 1 month)
             end as finance_month_date
         from base
     ),
@@ -73,8 +69,8 @@ with charges as (
         select
             *,
             format_date('%B %Y', finance_month_date) as reporting_month,
-            date_add(date_sub(finance_month_date, interval 1 month), interval 15 day) as reporting_month_start,
-            date_add(finance_month_date, interval 14 day) as reporting_month_end
+            date_add(finance_month_date, interval 15 day)                               as reporting_month_start,
+            date_add(date_add(finance_month_date, interval 1 month), interval 14 day)   as reporting_month_end
         from finance_months
     )
 

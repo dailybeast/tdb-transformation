@@ -52,11 +52,11 @@ combined as (
 select
     *,
     date_add(
-        date_sub(date_trunc(parse_date('%B %Y', reporting_month), month), interval 1 month),
+        date_trunc(parse_date('%B %Y', reporting_month), month),
         interval 15 day
     )                           as reporting_month_start,
     date_add(
-        date_trunc(parse_date('%B %Y', reporting_month), month),
+        date_add(date_trunc(parse_date('%B %Y', reporting_month), month), interval 1 month),
         interval 14 day
     )                           as reporting_month_end
 from combined

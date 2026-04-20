@@ -89,22 +89,3 @@ models:
       - name: total_count
         data_type: integer
 
-      - name: email
-        data_type: string
-
-      - name: stripe_plan_name
-        data_type: string
-        description: >
-          Plan label as displayed on Substack (e.g. "$7 a month", "$60 a year").
-          Present for Stripe-billed subscribers. Used to impute billing_interval
-          and price for non-Stripe paid subscribers (ios-app-link, android-app-link).
-
-      - name: paid_attribution
-        data_type: string
-        description: >
-          Acquisition channel Substack attributed the paid conversion to
-          (e.g. direct, paywall, ios-app-link, substack-boost, email-checkout).
-          Null for free subscribers and some legacy records.
-
-      - name: free_attribution
-        data_type: string

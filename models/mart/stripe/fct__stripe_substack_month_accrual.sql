@@ -6,7 +6,7 @@ with subscriber_charges as (
         billing_interval,
         'subscriber'                    as revenue_type,
         sum(recognized_revenue_usd)     as recognized_revenue_usd,
-        count(distinct email)           as subscriber_count,
+        count(distinct customer_id)     as subscriber_count,
         count(distinct charge_id)       as charge_count
     from {{ ref('int__stripe_substack_charges') }}
     group by 1, 2, 3
@@ -33,11 +33,11 @@ combined as (
 select
     reporting_month,
     date_add(
-        date_sub(date_trunc(parse_date('%B %Y', reporting_month), month), interval 1 month),
+        date_trunc(parse_date('%B %Y', reporting_month), month),
         interval 15 day
     )                                   as reporting_month_start,
     date_add(
-        date_trunc(parse_date('%B %Y', reporting_month), month),
+        date_add(date_trunc(parse_date('%B %Y', reporting_month), month), interval 1 month),
         interval 14 day
     )                                   as reporting_month_end,
     revenue_type,
