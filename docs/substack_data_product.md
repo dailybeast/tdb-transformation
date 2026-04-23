@@ -565,23 +565,29 @@ The **staging layer** (`stg__*`) cleans and normalizes raw source data — stand
 Stripe (Fivetran)               Subscriber Snapshot           Substack dashboard endpoints (JSON)
         │                                │                               │
 stg__stripe_charges          stg__substack_subscribers           stg__substack_post_overview
-stg__stripe_refunds ──┘                  │                       stg__substack_post_traffic
-stg__stripe_invoices         int__substack_subscriber_daily      stg__substack_post_growth
-stg__stripe_subscriptions                │                       stg__substack_post_comments
-stg__stripe_customers        fct__substack_subscriber_daily              │
-        │                                │                       int__substack_post_overview
-int__stripe_substack_charges fct__substack_royalist_compat       int__substack_post_traffic
+stg__stripe_refunds ──┘                                          stg__substack_post_traffic
+stg__stripe_invoices                                             stg__substack_post_growth
+stg__stripe_subscriptions                                        stg__substack_post_comments
+stg__stripe_subscription_items                                          │
+stg__stripe_plans                                                int__substack_post_overview
+stg__stripe_customers                                            int__substack_post_traffic
         │                                                        int__substack_post_growth
-int__stripe_appstore_payouts                                     int__substack_post_comments
+int__stripe_substack_subscriptions                               int__substack_post_comments
         │                                                                │
-fct__stripe_substack_charge_accrual                              fct__substack_post_overview
+int__stripe_substack_charges                                     fct__substack_post_overview
         │                                                        fct__substack_post_traffic
-fct__stripe_substack_month_accrual                               fct__substack_post_growth
+int__stripe_appstore_payouts                                     fct__substack_post_growth
         │                                                        fct__substack_post_comments
+fct__stripe_substack_charge_accrual
+        │
+fct__stripe_substack_month_accrual
+        │
 fct__stripe_substack_month_revenue_projections
 ```
 
 `stg__stripe_refunds` feeds into `stg__stripe_charges` (indicated by `──┘`) so the refund deduction happens at the staging layer and propagates through every downstream model automatically.
+
+`int__stripe_substack_subscriptions` joins Stripe subscriptions (enriched with billing interval from `stg__stripe_subscription_items` and `stg__stripe_plans`) to Substack subscriber emails via `stg__substack_subscribers`.
 
 The **intermediate layer** (`int__*`) applies business logic — the Stripe-Substack email join, billing interval resolution, the 16th-to-15th calendar logic, annual charge spreading, and deduplication of post snapshots to the latest known values.
 
